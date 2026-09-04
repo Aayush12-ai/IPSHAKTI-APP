@@ -99,8 +99,8 @@ export function SurfaceCard({
   testID?: string;
 }) {
   const colors = useColors();
-  const content = <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }, style]}>{children}</View>;
-  if (!onPress) return content;
+  const cardStyle = [styles.card, { backgroundColor: colors.card, borderColor: colors.border }, style];
+  if (!onPress) return <View style={cardStyle}>{children}</View>;
   return (
     <Pressable
       testID={testID}
@@ -108,9 +108,9 @@ export function SurfaceCard({
         Haptics.selectionAsync();
         onPress();
       }}
-      style={({ pressed }) => [{ opacity: pressed ? 0.78 : 1 }]}
+      style={({ pressed }) => [...cardStyle, { opacity: pressed ? 0.78 : 1 }]}
     >
-      {content}
+      {children}
     </Pressable>
   );
 }
