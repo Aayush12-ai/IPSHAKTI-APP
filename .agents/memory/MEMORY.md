@@ -1,0 +1,1 @@
+- [Expo preview tooling](expo-preview-tooling.md) — React Native DevTools may warn about missing libglib in this environment while Metro and Expo preview continue to work.

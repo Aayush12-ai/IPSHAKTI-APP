@@ -1,6 +1,6 @@
-# [Project name]
+# IP SAKTI
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+IP SAKTI is a multilingual Ayurvedic intellectual-property and regulatory decision-support assistant for practitioners, researchers, and innovators.
 
 ## Run & Operate
 
@@ -22,15 +22,23 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/ip-sakti` — Expo mobile app with the five primary product sections and focused IP decision-support flows.
+- `artifacts/ip-sakti/components/ip-sakti.tsx` — shared mobile UI primitives and brand components.
+- `artifacts/ip-sakti/constants/colors.ts` — IP SAKTI semantic color tokens.
+- `artifacts/ip-sakti/app` — Expo Router screens for home, Ask AI, tools, passport, profile, classification, radar, jurisdictions, simulator, and evidence.
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The first build is frontend-only and uses realistic local demo state so every primary flow is demonstrable before a backend is connected.
+- Expo Router tabs keep the core product sections persistent, while focused analysis tools use stack routes outside the tab group.
+- Guidance is intentionally structured into assessment blocks and evidence cards rather than long chatbot paragraphs.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Home presents a query-first copilot experience, quick actions, and recent analyses.
+- Ask AI demonstrates structured, evidence-grounded responses with a legal-advice disclaimer.
+- IP Tools includes classification, prior-art radar, jurisdiction comparison, what-if simulation, passport readiness, and evidence exploration.
+- Profile provides a lightweight workspace for saved analyses, products, portfolio, language, privacy, and expert support.
 
 ## User preferences
 
@@ -38,7 +46,7 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- The React Native DevTools binary may emit a missing `libglib-2.0.so.0` warning in this environment; Metro can still start and the Expo preview remains usable.
 
 ## Pointers
 

@@ -1,0 +1,24 @@
+kind = "mobile"
+previewPath = "/ip-sakti/"
+title = "IP SAKTI"
+description = "A multilingual Ayurvedic intellectual property and regulatory decision-support assistant for practitioners, researchers, and innovators."
+version = "1.0.0"
+id = "artifacts/ip-sakti"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/ip-sakti/" ]
+localPort = 18212
+
+[services.development]
+run = "pnpm --filter @workspace/ip-sakti run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/ip-sakti", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/ip-sakti", "run", "serve" ]
+
+[services.env]
+PORT = "18212"
+BASE_PATH = "/ip-sakti/"
