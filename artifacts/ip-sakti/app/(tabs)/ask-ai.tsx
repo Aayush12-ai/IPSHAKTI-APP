@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
@@ -9,6 +8,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather, Ionicons } from '@expo/vector-icons';
@@ -858,20 +858,20 @@ export default function AskAIScreen() {
           </Text>
         </ScrollView>
 
-        {/* Modern Fixed Bottom Chat Composer (Cleanly Docked Above Tab Bar) */}
+        {/* Modern Fixed Bottom Chat Composer (Cleanly Docked & Elevated Above Tab Bar) */}
         <View
           style={{
-            paddingHorizontal: 12,
-            paddingTop: 8,
-            paddingBottom: 8,
+            paddingHorizontal: 14,
+            paddingTop: 10,
+            paddingBottom: 12,
             backgroundColor: colors.card,
             borderTopWidth: 1,
             borderTopColor: colors.border,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: -2 },
-            shadowOpacity: 0.04,
-            shadowRadius: 3,
-            elevation: 4,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.06,
+            shadowRadius: 5,
+            elevation: 8,
           }}
         >
           <View
@@ -880,13 +880,13 @@ export default function AskAIScreen() {
               alignItems: 'flex-end',
               gap: 8,
               backgroundColor: colors.canvas,
-              borderRadius: 22,
+              borderRadius: 24,
               borderWidth: 1.5,
-              borderColor: input.trim().length > 0 ? colors.lavender : colors.border,
-              paddingLeft: 14,
-              paddingRight: 6,
+              borderColor: input.trim().length > 0 ? colors.lavenderDeep : colors.border,
+              paddingLeft: 16,
+              paddingRight: 8,
               paddingVertical: 6,
-              minHeight: 46,
+              minHeight: 52,
             }}
           >
             <TextInput
@@ -899,13 +899,16 @@ export default function AskAIScreen() {
               maxLength={1000}
               style={{
                 flex: 1,
-                fontSize: 13.5,
-                lineHeight: 19,
+                fontSize: 15,
+                lineHeight: 21,
+                fontWeight: '500',
                 color: colors.foreground,
-                maxHeight: 110,
-                paddingTop: Platform.OS === 'ios' ? 6 : 4,
-                paddingBottom: Platform.OS === 'ios' ? 6 : 4,
-                textAlignVertical: 'center',
+                maxHeight: 120,
+                minHeight: 38,
+                paddingTop: Platform.OS === 'ios' ? 8 : 6,
+                paddingBottom: Platform.OS === 'ios' ? 8 : 6,
+                paddingHorizontal: 2,
+                textAlignVertical: 'top',
               }}
               returnKeyType="send"
               onSubmitEditing={() => {
@@ -915,7 +918,7 @@ export default function AskAIScreen() {
               }}
             />
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
               {input.trim().length > 0 && (
                 <Pressable
                   onPress={() => {
@@ -924,16 +927,17 @@ export default function AskAIScreen() {
                   }}
                   style={({ pressed }) => [
                     {
-                      width: 28,
-                      height: 28,
-                      borderRadius: 14,
+                      width: 30,
+                      height: 30,
+                      borderRadius: 15,
                       alignItems: 'center',
                       justifyContent: 'center',
+                      backgroundColor: colors.lavenderLight,
                       opacity: pressed ? 0.7 : 1,
                     },
                   ]}
                 >
-                  <Feather name="x" size={14} color={colors.inkSubtle} />
+                  <Feather name="x" size={15} color={colors.lavenderDeep} />
                 </Pressable>
               )}
 
@@ -943,20 +947,25 @@ export default function AskAIScreen() {
                 disabled={!input.trim() || chatMutation.isPending}
                 style={({ pressed }) => [
                   {
-                    width: 34,
-                    height: 34,
-                    borderRadius: 17,
+                    width: 38,
+                    height: 38,
+                    borderRadius: 19,
                     backgroundColor: input.trim() && !chatMutation.isPending ? colors.lavenderDeep : colors.border,
                     alignItems: 'center',
                     justifyContent: 'center',
-                    opacity: pressed ? 0.8 : !input.trim() || chatMutation.isPending ? 0.5 : 1,
+                    shadowColor: input.trim() ? colors.lavenderDeep : 'transparent',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 3,
+                    elevation: input.trim() ? 3 : 0,
+                    opacity: pressed ? 0.8 : !input.trim() || chatMutation.isPending ? 0.45 : 1,
                   },
                 ]}
               >
                 {chatMutation.isPending ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
-                  <Feather name="arrow-up" size={18} color="#FFFFFF" />
+                  <Feather name="arrow-up" size={20} color="#FFFFFF" />
                 )}
               </Pressable>
             </View>
