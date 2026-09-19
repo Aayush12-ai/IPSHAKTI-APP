@@ -2,61 +2,61 @@
  * Semantic design tokens for IP-SAKTI.
  *
  * Themes:
- * - light: Lavender-Pinkish, Sharp Obsidian Black, Pure White
- * - dark: Midnight Obsidian Dark (#0A0B10), Glowing Lavender & Pink, White Text
- * - herbal: Classical Emerald Green & Ayurvedic Gold
+ * - light: Soothing Serene Iris, Soft Violet, Calming Slate, Crisp Whites
+ * - dark: Deep Slate Navy (#0F172A), Soft Iris & Violet Glow, Crisp Text
+ * - herbal: Calming Ayurvedic Eucalyptus, Soft Sage & Gentle Amber
  */
 
 const colors = {
   light: {
-    // Core Base
-    background: '#FAF8FC',
-    canvas: '#FAF8FC',
-    foreground: '#0F1016',
-    text: '#0F1016',
+    // Core Base (Soothing, Eye-Friendly)
+    background: '#F8F9FC',
+    canvas: '#F8F9FC',
+    foreground: '#1E293B',
+    text: '#1E293B',
     card: '#FFFFFF',
-    cardForeground: '#0F1016',
-    surfaceMuted: '#F4EEF8',
-    muted: '#F4EEF8',
-    mutedForeground: '#645E73',
-    inkSubtle: '#645E73',
-    border: '#E5DEEC',
-    input: '#E5DEEC',
+    cardForeground: '#1E293B',
+    surfaceMuted: '#F1F5F9',
+    muted: '#F1F5F9',
+    mutedForeground: '#64748B',
+    inkSubtle: '#64748B',
+    border: '#E2E8F0',
+    input: '#E2E8F0',
 
-    // Primary & Noir
-    primary: '#7B2CBF',
+    // Primary & Serene Accents (Soothing Iris/Lavender & Soft Violet)
+    primary: '#5B50A1',
     primaryForeground: '#FFFFFF',
-    secondary: '#F2EDFC',
-    secondaryForeground: '#7B2CBF',
-    black: '#0F1016',
+    secondary: '#EEF2FF',
+    secondaryForeground: '#4F46E5',
+    black: '#0F172A',
     white: '#FFFFFF',
 
-    // Lavender Palette
-    lavender: '#8B5CF6',
-    lavenderDeep: '#5B21B6',
-    lavenderLight: '#F2EDFC',
-    lavenderBorder: '#DDD0FA',
-    tint: '#7B2CBF',
+    // Lavender & Periwinkle Palette
+    lavender: '#6366F1',
+    lavenderDeep: '#4338CA',
+    lavenderLight: '#EEF2FF',
+    lavenderBorder: '#C7D2FE',
+    tint: '#5B50A1',
 
-    // Pinkish / Rosé Palette
-    pink: '#E63973',
-    pinkDeep: '#BE123C',
-    pinkLight: '#FDF2F4',
-    pinkBorder: '#FBCFE8',
-    accent: '#E63973',
+    // Soft Violet / Calming Plum Palette (Soothing alternative to aggressive neon)
+    pink: '#7C3AED',
+    pinkDeep: '#5B21B6',
+    pinkLight: '#F5F3FF',
+    pinkBorder: '#DDD6FE',
+    accent: '#7C3AED',
     accentForeground: '#FFFFFF',
 
     // Backward-compatible Brand Aliases
-    forest: '#7B2CBF',
-    forestDeep: '#0F1016',
-    sage: '#9D4EDD',
-    sageLight: '#F2EDFC',
-    saffron: '#E63973',
-    saffronLight: '#FDF2F4',
+    forest: '#5B50A1',
+    forestDeep: '#1E1B4B',
+    sage: '#0D9488',
+    sageLight: '#F0FDFA',
+    saffron: '#D97706',
+    saffronLight: '#FEF3C7',
 
-    // Status Semantics
-    success: '#059669',
-    successLight: '#ECFDF5',
+    // Status Semantics (Soft & Harmonious)
+    success: '#0D9488',
+    successLight: '#F0FDFA',
     warning: '#D97706',
     warningLight: '#FFFBEB',
     destructive: '#E11D48',
@@ -64,112 +64,112 @@ const colors = {
   },
 
   dark: {
-    // Core Base
-    background: '#0A0B10',
-    canvas: '#0A0B10',
+    // Core Base (Deep Midnight Slate)
+    background: '#0F172A',
+    canvas: '#0F172A',
     foreground: '#F8FAFC',
     text: '#F8FAFC',
-    card: '#13141F',
+    card: '#1E293B',
     cardForeground: '#F8FAFC',
-    surfaceMuted: '#1C1D2C',
-    muted: '#1C1D2C',
+    surfaceMuted: '#334155',
+    muted: '#334155',
     mutedForeground: '#94A3B8',
     inkSubtle: '#94A3B8',
-    border: '#25273A',
-    input: '#25273A',
+    border: '#334155',
+    input: '#334155',
 
-    // Primary & Noir
-    primary: '#A78BFA',
-    primaryForeground: '#0A0B10',
-    secondary: '#232038',
-    secondaryForeground: '#C4B5FD',
-    black: '#050608',
+    // Primary & Serene Accents
+    primary: '#818CF8',
+    primaryForeground: '#0F172A',
+    secondary: '#1E1B4B',
+    secondaryForeground: '#C7D2FE',
+    black: '#020617',
     white: '#FFFFFF',
 
     // Lavender Palette
-    lavender: '#A78BFA',
-    lavenderDeep: '#C4B5FD',
-    lavenderLight: '#232038',
-    lavenderBorder: '#3E3466',
-    tint: '#A78BFA',
+    lavender: '#818CF8',
+    lavenderDeep: '#A5B4FC',
+    lavenderLight: '#1E1B4B',
+    lavenderBorder: '#3730A3',
+    tint: '#818CF8',
 
-    // Pinkish / Rosé Palette
-    pink: '#F43F5E',
-    pinkDeep: '#FB7185',
-    pinkLight: '#341523',
-    pinkBorder: '#5C223C',
-    accent: '#F43F5E',
+    // Soft Violet Palette
+    pink: '#A78BFA',
+    pinkDeep: '#C4B5FD',
+    pinkLight: '#2E1065',
+    pinkBorder: '#5B21B6',
+    accent: '#A78BFA',
     accentForeground: '#FFFFFF',
 
     // Backward-compatible Brand Aliases
-    forest: '#A78BFA',
-    forestDeep: '#050608',
-    sage: '#C084FC',
-    sageLight: '#232038',
-    saffron: '#F43F5E',
-    saffronLight: '#341523',
+    forest: '#818CF8',
+    forestDeep: '#020617',
+    sage: '#2DD4BF',
+    sageLight: '#134E4A',
+    saffron: '#FBBF24',
+    saffronLight: '#451A03',
 
     // Status Semantics
-    success: '#10B981',
+    success: '#34D399',
     successLight: '#064E3B',
-    warning: '#F59E0B',
+    warning: '#FBBF24',
     warningLight: '#451A03',
-    destructive: '#F43F5E',
+    destructive: '#FB7185',
     destructiveForeground: '#FFFFFF',
   },
 
   herbal: {
-    // Core Base
-    background: '#F7FAF7',
-    canvas: '#F7FAF7',
-    foreground: '#111827',
-    text: '#111827',
+    // Core Base (Soothing Herbal Sage)
+    background: '#F8FAF9',
+    canvas: '#F8FAF9',
+    foreground: '#0F291E',
+    text: '#0F291E',
     card: '#FFFFFF',
-    cardForeground: '#111827',
-    surfaceMuted: '#EBF5EC',
-    muted: '#EBF5EC',
-    mutedForeground: '#4B5563',
-    inkSubtle: '#4B5563',
-    border: '#D1E7D5',
-    input: '#D1E7D5',
+    cardForeground: '#0F291E',
+    surfaceMuted: '#E6F4F0',
+    muted: '#E6F4F0',
+    mutedForeground: '#476357',
+    inkSubtle: '#476357',
+    border: '#CCE3DB',
+    input: '#CCE3DB',
 
-    // Primary & Noir
-    primary: '#15803D',
+    // Primary & Serene Accents
+    primary: '#0D9488',
     primaryForeground: '#FFFFFF',
-    secondary: '#E8F5E9',
-    secondaryForeground: '#15803D',
-    black: '#0D1F12',
+    secondary: '#E6F4F0',
+    secondaryForeground: '#0D9488',
+    black: '#071A13',
     white: '#FFFFFF',
 
     // Lavender / Green Palette
-    lavender: '#16A34A',
-    lavenderDeep: '#15803D',
-    lavenderLight: '#E8F5E9',
-    lavenderBorder: '#BBF7D0',
-    tint: '#15803D',
+    lavender: '#14B8A6',
+    lavenderDeep: '#0F766E',
+    lavenderLight: '#CCFBF1',
+    lavenderBorder: '#99F6E4',
+    tint: '#0D9488',
 
     // Pinkish / Gold Palette
     pink: '#D97706',
     pinkDeep: '#B45309',
     pinkLight: '#FEF3C7',
     pinkBorder: '#FDE68A',
-    accent: '#D97706',
+    accent: '#059669',
     accentForeground: '#FFFFFF',
 
     // Backward-compatible Brand Aliases
-    forest: '#15803D',
-    forestDeep: '#0D1F12',
-    sage: '#22C55E',
-    sageLight: '#E8F5E9',
+    forest: '#0D9488',
+    forestDeep: '#071A13',
+    sage: '#10B981',
+    sageLight: '#E6F4F0',
     saffron: '#D97706',
     saffronLight: '#FEF3C7',
 
     // Status Semantics
-    success: '#16A34A',
-    successLight: '#DCFCE7',
+    success: '#0D9488',
+    successLight: '#CCFBF1',
     warning: '#D97706',
     warningLight: '#FEF3C7',
-    destructive: '#DC2626',
+    destructive: '#E11D48',
     destructiveForeground: '#FFFFFF',
   },
 

@@ -334,29 +334,96 @@ function buildRepresentation(
   ].join(" ");
 }
 
-async function explainWithGemini(
+async function generateDynamicFormulaAnalysisWithGemini(
   formulation: string,
   representation: string,
   ingredients: ReturnType<typeof extractIngredients>,
+  action: "full" | "prior-art" | "abs-tk",
+  fallbackSections: ReturnType<typeof generateAnalysisSections>,
 ) {
   try {
     const prompt = [
-      "You are IP-SAKTI, an expert Ayurvedic IP & regulatory intelligence assistant.",
-      "Explain this formulation analysis in clear, executive-grade language.",
-      "Cover Section 3(p) Patent Act implications, Traditional Knowledge grounding, Biological Diversity Act (ABS) compliance, and Rule 158B licensing.",
-      `Formulation: ${formulation}`,
+      "Perform an in-depth, expert patentability, prior-art, traditional knowledge, biodiversity (ABS), and regulatory synthesis for this Ayurvedic / Herbal formulation under both National (Indian) and International Patent & Regulatory Frameworks.",
+      "",
+      `Formulation: "${formulation}"`,
       `Representation: ${representation}`,
-      `Ingredients: ${ingredients.map((ingredient) => `${ingredient.commonName} (${ingredient.botanicalName})`).join("; ")}`,
+      `Identified Ingredients: ${ingredients.map((i) => `${i.commonName} (${i.botanicalName})`).join(", ")}`,
+      `Requested Action Scope: ${action}`,
+      "",
+      "Provide a rigorous analysis covering:",
+      "1. Patentability: Section 3(p) Traditional Knowledge exclusion, Section 3(d) Enhanced Efficacy / Synergy, Section 3(e) Mere admixture, and International patent eligibility (USPTO 35 U.S.C. 101/103 Alice doctrine, EPO EPC Art 52/54/56 inventive step for botanical fractions).",
+      "2. Prior Art: Google Patents & IPC search classes (e.g., A61K36/00, A61P), Traditional Knowledge Digital Library (TKDL) citations, Ayurvedic Formulary of India (AFI), and classical Samhita prior art.",
+      "3. Traditional Knowledge: First Schedule classical texts, historical indications, safety references.",
+      "4. Biodiversity & ABS: Biological Diversity Act 2002 & 2023 Amendment, Section 6 Form III mandatory NBA clearance before patent grant, Section 7 SBB prior intimation, 0.1-0.3% benefit-sharing liability, Section 40 NTC commodity status.",
+      "5. Regulatory Pathway: Drugs & Cosmetics Rules 1945 Rule 158B (Form 25D ASU license), CDSCO phytopharmaceutical standards, or FSSAI Ayurveda Aahar 2022.",
+      "",
+      "Return a strict JSON object matching this schema exactly without markdown formatting:",
+      "{",
+      '  "patent": {',
+      '    "status": "available",',
+      '    "summary": "string (authoritative 2-sentence legal determination)",',
+      '    "findings": ["string", "string", "string"],',
+      '    "evidence": [{ "title": "string", "reference": "string" }]',
+      "  },",
+      '  "priorArt": {',
+      '    "status": "available",',
+      '    "summary": "string (Google Patents & TKDL prior-art landscape summary)",',
+      '    "findings": ["string", "string", "string"],',
+      '    "evidence": [{ "title": "string", "reference": "string" }]',
+      "  },",
+      '  "traditionalKnowledge": {',
+      '    "status": "available",',
+      '    "summary": "string (classical texts and codified formulation status)",',
+      '    "findings": ["string", "string", "string"],',
+      '    "evidence": [{ "title": "string", "reference": "string" }]',
+      "  },",
+      '  "abs": {',
+      '    "status": "available",',
+      '    "summary": "string (Biological Diversity Act 2023 & NBA Form III requirements)",',
+      '    "findings": ["string", "string", "string"],',
+      '    "evidence": [{ "title": "string", "reference": "string" }]',
+      "  },",
+      '  "regulatory": {',
+      '    "status": "available",',
+      '    "summary": "string (Rule 158B / AYUSH / FSSAI licensing pathway)",',
+      '    "findings": ["string", "string", "string"],',
+      '    "evidence": [{ "title": "string", "reference": "string" }]',
+      "  },",
+      '  "explanation": "string (comprehensive executive synthesis written by Senior Patent Counsel)"',
+      "}",
     ].join("\n");
 
     const systemInstruction =
-      "You are IP SAKTI. Provide precise, evidence-grounded Ayurvedic patent and regulatory synthesis. Emphasize Section 3(p), Rule 158B, and NBA ABS compliance.";
+      "You are IP-SAKTI, Senior Patent Counsel & Ayurvedic Regulatory Intelligence Authority. " +
+      "You possess deep mastery of the Indian Patents Act 1970 (Sec 3(p), 3(d), 3(e), 2(1)(j)), Drugs & Cosmetics Rules 1945 Rule 158B, Biological Diversity Act 2002/2023 (Sec 6 Form III, Sec 7 SBB), TKDL database, and International Patent Laws (WIPO PCT, USPTO 35 U.S.C. 101/103, EPO EPC Art 54/56, and Google Patents prior-art classification IPC A61K36/00). " +
+      "Never mention 'Gemini' or generic AI boilerplate. Return only valid raw JSON.";
 
-    return await callGemini({
+    const rawText = await callGemini({
       prompt,
       systemInstruction,
-      generationConfig: { temperature: 0.2, maxOutputTokens: 600 },
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 1800,
+        responseMimeType: "application/json",
+      },
     });
+
+    if (!rawText) return null;
+
+    const cleanedText = rawText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+    type AnalysisOutput = {
+      patent: FormulaSection;
+      priorArt: FormulaSection;
+      traditionalKnowledge: FormulaSection;
+      abs: FormulaSection;
+      regulatory: FormulaSection;
+      explanation: string;
+    };
+    const parsed = JSON.parse(cleanedText) as AnalysisOutput;
+    if (parsed.patent && parsed.priorArt && parsed.abs && parsed.regulatory) {
+      return parsed;
+    }
+    return null;
   } catch {
     return null;
   }
@@ -372,23 +439,38 @@ router.post("/mobile/formula-analysis", async (req, res) => {
   const { formulation, action } = parsedRequest.data;
   const ingredients = extractIngredients(formulation.trim());
   const representation = buildRepresentation(ingredients, formulation.trim());
-  const sections = generateAnalysisSections(formulation.trim(), ingredients, action);
+  const fallbackSections = generateAnalysisSections(formulation.trim(), ingredients, action);
 
   try {
-    const explanation = await explainWithGemini(formulation.trim(), representation, ingredients);
-    const defaultExplanation = `The formulation '${formulation.trim()}' was normalized into recognized botanical entities. Under Section 3(p) of the Patents Act, classical aggregations are excluded unless novel synergistic extraction or bioavailability enhancement is demonstrated. Commercial manufacturing requires a Form 25D license under Rule 158B and prior SBB intimation under Section 7 of the Biological Diversity Act.`;
+    const dynamicResult = await generateDynamicFormulaAnalysisWithGemini(
+      formulation.trim(),
+      representation,
+      ingredients,
+      action,
+      fallbackSections,
+    );
+
+    const patent = dynamicResult?.patent ?? fallbackSections.patent;
+    const priorArt = dynamicResult?.priorArt ?? fallbackSections.priorArt;
+    const traditionalKnowledge = dynamicResult?.traditionalKnowledge ?? fallbackSections.traditionalKnowledge;
+    const abs = dynamicResult?.abs ?? fallbackSections.abs;
+    const regulatory = dynamicResult?.regulatory ?? fallbackSections.regulatory;
+
+    const defaultExplanation = `The formulation '${formulation.trim()}' was analyzed against Indian Patent Office standards, Google Patents prior art, and the Ayurvedic Pharmacopoeia. Under Section 3(p) of the Patents Act, traditional aggregations require demonstrated synergistic bio-enhancement or novel extraction processes to establish novelty under Section 3(d). Commercial operations require prior SBB intimation under Section 7 of the Biological Diversity Act and a Form 25D license under Rule 158B.`;
+
+    const explanation = dynamicResult?.explanation ?? defaultExplanation;
 
     res.json(
       MobileFormulaAnalysisResponse.parse({
         formulation: formulation.trim(),
         representation,
         ingredients,
-        patent: sections.patent,
-        priorArt: sections.priorArt,
-        traditionalKnowledge: sections.traditionalKnowledge,
-        abs: sections.abs,
-        regulatory: sections.regulatory,
-        explanation: explanation ?? defaultExplanation,
+        patent,
+        priorArt,
+        traditionalKnowledge,
+        abs,
+        regulatory,
+        explanation,
         explanationStatus: "available",
       }),
     );

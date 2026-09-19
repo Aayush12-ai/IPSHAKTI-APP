@@ -12,19 +12,9 @@ import {
   saveResearchHistory,
   saveResearchMemory,
 } from "../lib/research-store";
+import { callGemini } from "../lib/gemini";
 
 const router: IRouter = Router();
-
-const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-2.0-flash";
-const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
-
-type GeminiResponse = {
-  candidates?: Array<{
-    content?: {
-      parts?: Array<{ text?: string }>;
-    };
-  }>;
-};
 
 type ClassificationPayload = {
   category: string;
@@ -376,12 +366,9 @@ async function callGeminiClassification(
   },
   fallback: ClassificationPayload,
 ): Promise<ClassificationPayload> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return fallback;
-
   try {
     const prompt = [
-      "Analyze this Ayurvedic / Herbal product formulation and determine its exact regulatory classification under Indian and international laws.",
+      "Perform a comprehensive regulatory and intellectual property classification for the following Ayurvedic / Herbal innovation under both National (Indian) and International legal standards.",
       "Input Data:",
       `- Product Name: ${data.productName}`,
       `- Ingredients: ${data.ingredients}`,
@@ -389,25 +376,31 @@ async function callGeminiClassification(
       `- Preparation / Extraction Method: ${data.preparationMethod ?? "Not specified"}`,
       `- Intended Use: ${data.intendedUse ?? "Not specified"}`,
       `- Claims: ${data.claims ?? "Not specified"}`,
-      `- Target Market: ${data.targetMarket ?? "India (AYUSH / FSSAI)"}`,
+      `- Target Market: ${data.targetMarket ?? "India (AYUSH / FSSAI) & Global (WIPO / US / EU)"}`,
       "",
-      "Provide a structured JSON response matching this schema:",
+      "Required Analysis Depth:",
+      "1. Determine exact statutory category under Drugs & Cosmetics Rules 1945 (Classical ASU vs Proprietary Rule 158B vs Phytopharmaceutical Rule 122E vs FSSAI Ayurveda Aahar 2022 vs Cosmetic).",
+      "2. Provide concrete regulatory licensing pathway (State AYUSH Form 25D, CDSCO Form 44, Central FSSAI License, or SBB intimation).",
+      "3. Evaluate Patentability & Section 3(p)/3(d) hurdles, Traditional Knowledge (TKDL) citations, and international patent eligibility (USPTO 35 U.S.C. 101/103 / EPO EPC Art 52/54/56 / Google Patents prior-art classification IPC A61K36/00).",
+      "4. Specify exact trial/safety documentation required, clear actionable recommendations, and statutory evidence citations.",
+      "",
+      "Return a strict JSON object matching this schema exactly without markdown formatting:",
       "{",
-      '  "category": "string (e.g. Classical Ayurvedic Medicine | Proprietary Ayurvedic Medicine | Ayurveda Aahar | Phytopharmaceutical Drug | Ayurvedic Cosmetic)",',
-      '  "categoryCode": "string (classical-asu | proprietary-asu | ayurveda-aahar | phytopharmaceutical | ayurvedic-cosmetic)",',
+      '  "category": "string (e.g. Proprietary Ayurvedic Medicine | Classical Ayurvedic Medicine | Ayurveda Aahar | Phytopharmaceutical Drug | Ayurvedic Cosmetic)",',
+      '  "categoryCode": "string (proprietary-asu | classical-asu | ayurveda-aahar | phytopharmaceutical | ayurvedic-cosmetic)",',
       '  "confidence": "string (High | Moderate | Low)",',
       '  "confidenceScore": number (0-100),',
-      '  "summary": "string (concise 2-sentence regulatory determination)",',
-      '  "statutoryBasis": "string (exact act, section, rule)",',
+      '  "summary": "string (authoritative 2-sentence regulatory determination)",',
+      '  "statutoryBasis": "string (exact primary statute, section, and rule)",',
       '  "regulatoryPathway": {',
-      '    "authority": "string",',
-      '    "licenseType": "string",',
+      '    "authority": "string (e.g. State AYUSH Licensing Authority / CDSCO / FSSAI)",',
+      '    "licenseType": "string (e.g. Form 25D ASU License / Form 44 / FSSAI Central License)",',
       '    "trialRequirements": ["string"],',
       '    "standardsRef": "string"',
       "  },",
       '  "ipAndTkdlRisks": {',
-      '    "patentability": "string",',
-      '    "tkdlOverlap": "string",',
+      '    "patentability": "string (detailed Section 3(p)/3(d) & international patent eligibility evaluation)",',
+      '    "tkdlOverlap": "string (prior art and TKDL database status)",',
       '    "keyRisks": ["string"]',
       "  },",
       '  "recommendedActions": ["string"],',
@@ -415,41 +408,27 @@ async function callGeminiClassification(
       '    { "title": "string", "section": "string", "description": "string" }',
       "  ]",
       "}",
-      "Return only valid raw JSON. Do not include markdown code block formatting.",
     ].join("\n");
 
-    const upstreamResponse = await fetch(
-      `${GEMINI_ENDPOINT}/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(apiKey)}`,
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [
-              {
-                text:
-                  "You are IP SAKTI, the expert regulatory classification and IP decision-support system for Ayurveda, Siddha, Unani, and Phytopharmaceutical innovations in India. " +
-                  "Ground every assessment in the Drugs & Cosmetics Act 1940, Rule 158B, FSSAI Ayurveda Aahar 2022 Regulations, Biological Diversity Act, and Section 3(p) of the Patents Act 1970. Never invent statutes.",
-              },
-            ],
-          },
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 1200,
-            responseMimeType: "application/json",
-          },
-        }),
+    const systemInstruction =
+      "You are IP-SAKTI, Senior Patent Counsel and Ayurvedic Regulatory Intelligence Specialist. " +
+      "You operate with deep, comprehensive expertise in the Drugs & Cosmetics Act 1940, Rule 158B, Rule 122E, FSSAI Ayurveda Aahar Regulations 2022, Biological Diversity Act 2002/2023, Indian Patents Act 1970 (Section 3(p), 3(d), 3(e), 2(1)(j)), and International Patent Law (WIPO PCT, USPTO 35 U.S.C. 101/102/103, EPO EPC Art 52/54/56, and Google Patents prior-art classification IPC A61K36/00). " +
+      "Never mention 'Gemini' or generic AI disclaimers. Return only valid JSON.";
+
+    const rawText = await callGemini({
+      prompt,
+      systemInstruction,
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 1400,
+        responseMimeType: "application/json",
       },
-    );
+    });
 
-    if (!upstreamResponse.ok) return fallback;
-
-    const resJson = (await upstreamResponse.json()) as GeminiResponse;
-    const rawText = resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
     if (!rawText) return fallback;
 
-    const parsed = JSON.parse(rawText) as ClassificationPayload;
+    const cleanedText = rawText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+    const parsed = JSON.parse(cleanedText) as ClassificationPayload;
     if (parsed.category && parsed.regulatoryPathway && parsed.ipAndTkdlRisks) {
       return parsed;
     }

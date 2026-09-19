@@ -13,18 +13,9 @@ import {
   saveResearchMemory,
 } from "../lib/research-store";
 
+import { callGemini } from "../lib/gemini";
+
 const router: IRouter = Router();
-
-const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-2.0-flash";
-const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
-
-type GeminiResponse = {
-  candidates?: Array<{
-    content?: {
-      parts?: Array<{ text?: string }>;
-    };
-  }>;
-};
 
 type AbsPayload = {
   absStatus: string;
@@ -336,12 +327,9 @@ async function callGeminiAbsCheck(
   },
   fallback: AbsPayload,
 ): Promise<AbsPayload> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return fallback;
-
   try {
     const prompt = [
-      "Perform a high-accuracy Access and Benefit Sharing (ABS) legal and regulatory check under the Indian Biological Diversity Act 2002 and 2023 Amendments.",
+      "Perform a rigorous legal and regulatory Access and Benefit Sharing (ABS) assessment under the Indian Biological Diversity Act 2002 and Biological Diversity (Amendment) Act 2023, along with Nagoya Protocol international guidelines.",
       "Input Data:",
       `- Entity Type: ${data.entityType}`,
       `- Biological Resources / Herbs: ${data.bioResources}`,
@@ -349,12 +337,17 @@ async function callGeminiAbsCheck(
       `- Activity Type: ${data.activityType}`,
       `- Jurisdiction: ${data.jurisdiction ?? "India"}`,
       "",
-      "Provide a structured JSON response matching this exact schema:",
+      "Required Analysis Depth:",
+      "1. Determine exact statutory obligation (NBA Form III approval prior to patent grant under Section 6, Section 7 SBB prior intimation for Indian commercial entities, Section 3 foreign entity approval, or Section 40 NTC commodity exemptions).",
+      "2. State exact Benefit Sharing levy percentage (e.g. 0.1% to 0.5% ex-factory sales or 2-5% royalty).",
+      "3. Provide concrete step-by-step roadmap for compliance, filing forms, and statutory evidence citations.",
+      "",
+      "Return a strict JSON object matching this schema exactly without markdown formatting:",
       "{",
       '  "absStatus": "string (EXEMPT | SBB_INTIMATION_REQUIRED | NBA_APPROVAL_REQUIRED | PROHIBITED_OR_RESTRICTED)",',
-      '  "statusTitle": "string",',
+      '  "statusTitle": "string (clear authoritative title)",',
       '  "confidence": "string (High | Moderate)",',
-      '  "summary": "string (2-3 sentence precise legal finding)",',
+      '  "summary": "string (authoritative 2-3 sentence legal finding)",',
       '  "statutorySections": ["string"],',
       '  "benefitSharingEstimate": "string",',
       '  "approvalForms": ["string"],',
@@ -366,42 +359,27 @@ async function callGeminiAbsCheck(
       '    { "title": "string", "section": "string", "description": "string" }',
       "  ]",
       "}",
-      "Return only valid raw JSON without markdown formatting.",
     ].join("\n");
 
-    const upstreamResponse = await fetch(
-      `${GEMINI_ENDPOINT}/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(apiKey)}`,
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [
-              {
-                text:
-                  "You are IP SAKTI's Biodiversity & ABS Compliance Specialist. " +
-                  "Ground all answers in the Biological Diversity Act 2002, 2023 Amendment, Section 3/6/7/24/40, NBA Regulations 2014, and Nagoya Protocol. " +
-                  "Distinguish clearly between foreign entity Section 3 approvals, Indian company Section 7 SBB intimations, Section 6 Form III patent clearances, and AYUSH healer Section 7 exemptions.",
-              },
-            ],
-          },
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 1200,
-            responseMimeType: "application/json",
-          },
-        }),
+    const systemInstruction =
+      "You are IP-SAKTI, Senior Biodiversity & ABS Regulatory Counsel. " +
+      "You operate with deep, comprehensive expertise in the Biological Diversity Act 2002, Biological Diversity (Amendment) Act 2023, NBA Regulations 2014, State Biodiversity Board (SBB) rules, Section 10(4)(d)(ii) of the Indian Patents Act, and the Nagoya Protocol. " +
+      "Never mention 'Gemini' or generic AI disclaimers. Return only valid raw JSON.";
+
+    const rawText = await callGemini({
+      prompt,
+      systemInstruction,
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 1400,
+        responseMimeType: "application/json",
       },
-    );
+    });
 
-    if (!upstreamResponse.ok) return fallback;
-
-    const resJson = (await upstreamResponse.json()) as GeminiResponse;
-    const rawText = resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
     if (!rawText) return fallback;
 
-    const parsed = JSON.parse(rawText) as AbsPayload;
+    const cleanedText = rawText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+    const parsed = JSON.parse(cleanedText) as AbsPayload;
     if (parsed.absStatus && parsed.statutorySections && parsed.approvalForms) {
       return parsed;
     }
