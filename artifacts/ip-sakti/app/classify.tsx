@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import {
   AppScreen,
   BackHeader,
@@ -120,6 +121,7 @@ export default function ClassifyScreen() {
   }, []);
 
   const addHerbChip = (herb: string) => {
+    Haptics.selectionAsync();
     if (!ingredients.trim()) {
       setIngredients(herb);
     } else if (!ingredients.toLowerCase().includes(herb.toLowerCase())) {
@@ -129,6 +131,7 @@ export default function ClassifyScreen() {
 
   const handleClassify = async () => {
     if (!productName.trim() || !ingredients.trim()) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setStep(2);
     setSavedToResearch(false);
 
@@ -147,6 +150,7 @@ export default function ClassifyScreen() {
         },
       });
       setResult(response);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch {
       // Result handled via error fallback
     }
@@ -156,6 +160,7 @@ export default function ClassifyScreen() {
     if (!result || !clientId || savedToResearch || saveMemoryMutation.isPending) return;
 
     try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       const targetProjectId = activeProjectId ?? 'default';
       await saveMemoryMutation.mutateAsync({
         projectId: targetProjectId,
@@ -171,6 +176,7 @@ export default function ClassifyScreen() {
         },
       });
       setSavedToResearch(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch {
       // Handled gracefully
     }

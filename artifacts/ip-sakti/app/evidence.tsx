@@ -489,7 +489,7 @@ export default function EvidenceScreen() {
                     height: 28,
                     borderRadius: 10,
                     backgroundColor: isLast
-                      ? colors.black
+                      ? colors.lavenderDeep
                       : step.badgeTone === 'pink'
                         ? colors.pink
                         : colors.lavenderDeep,

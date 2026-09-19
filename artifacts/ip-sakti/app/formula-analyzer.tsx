@@ -317,13 +317,13 @@ export default function FormulaAnalyzerScreen() {
             <SectionResult key={section.key} title={section.title} icon={section.icon} section={result[section.key]} />
           ))}
 
-          <SurfaceCard style={{ marginTop: 10, padding: 14, backgroundColor: colors.black, borderColor: '#262438' }}>
+          <SurfaceCard style={{ marginTop: 10, padding: 14, backgroundColor: colors.lavenderLight, borderColor: colors.lavenderBorder }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Feather name="zap" size={15} color={colors.pink} />
-              <Text style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '700' }}>IP-SAKTI Regulatory Synthesis</Text>
+              <Feather name="zap" size={15} color={colors.lavenderDeep} />
+              <Text style={{ color: colors.lavenderDeep, fontSize: 13, fontWeight: '700' }}>IP-SAKTI Regulatory Synthesis</Text>
               <StatusBadge label={result.explanationStatus === 'available' ? 'Grounded' : 'Unavailable'} tone={result.explanationStatus === 'available' ? 'lavender' : 'warning'} />
             </View>
-            <Text style={{ color: '#D4D0DE', fontSize: 12, lineHeight: 19, marginTop: 11 }}>{result.explanation}</Text>
+            <Text style={{ color: colors.foreground, fontSize: 12, lineHeight: 19, marginTop: 11, fontWeight: '500' }}>{result.explanation}</Text>
           </SurfaceCard>
           <Text style={{ color: colors.inkSubtle, fontSize: 10, textAlign: 'center', lineHeight: 15, marginTop: 14 }}>This is structured research guidance, not a legal conclusion. Verify sources with a qualified professional.</Text>
         </View>

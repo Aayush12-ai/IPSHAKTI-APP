@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import {
   AppScreen,
   BackHeader,
@@ -98,22 +99,20 @@ const ACTIVITY_OPTIONS = [
     subtitle: 'Academic or pilot exploratory study without immediate sales',
   },
   {
-    id: 'bio-export',
-    title: 'Export of Raw Biological Material',
-    subtitle: 'Transferring Indian herbal bio-resources outside India (Section 20)',
+    id: 'third-party-transfer',
+    title: 'Transfer of Research Results / Knowledge',
+    subtitle: 'Licensing or transferring Indian bio-resource data to third parties (Section 20)',
   },
 ];
 
 const QUICK_HERBS = [
   'Ashwagandha',
-  'Red Sandalwood',
+  'Pippali',
   'Sarpagandha',
   'Kutki',
   'Guggal',
   'Neem',
   'Turmeric (Cultivated)',
-  'Triphala',
-  'Tulsi',
 ];
 
 export default function AbsScreen() {
@@ -145,6 +144,7 @@ export default function AbsScreen() {
   }, []);
 
   const addHerb = (herb: string) => {
+    Haptics.selectionAsync();
     if (!bioResources.trim()) {
       setBioResources(herb);
     } else if (!bioResources.toLowerCase().includes(herb.toLowerCase())) {
@@ -154,6 +154,7 @@ export default function AbsScreen() {
 
   const runAbsCheck = async () => {
     if (!bioResources.trim()) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setStep(2);
     setSavedToResearch(false);
 
@@ -170,6 +171,7 @@ export default function AbsScreen() {
         },
       });
       setResult(response);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch {
       // Handled via error state
     }
@@ -179,12 +181,13 @@ export default function AbsScreen() {
     if (!result || !clientId || savedToResearch || saveMemoryMutation.isPending) return;
 
     try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       const targetProjectId = activeProjectId ?? 'default';
       await saveMemoryMutation.mutateAsync({
         projectId: targetProjectId,
         data: {
           clientId,
-          title: `ABS Assessment: ${bioResources.slice(0, 40)}`,
+          title: `ABS Finding: ${bioResources}`,
           finding: `${result.statusTitle}\n${result.summary}\nBenefit Sharing: ${result.benefitSharingEstimate}`,
           entities: bioResources.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean),
           sources: result.evidenceSources.map((s) => ({
@@ -194,8 +197,9 @@ export default function AbsScreen() {
         },
       });
       setSavedToResearch(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch {
-      // Ignored
+      // Handled
     }
   };
 

@@ -14,6 +14,7 @@ import {
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
+import { useRouter } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 
 type IconName = React.ComponentProps<typeof Feather>['name'];
@@ -261,7 +262,7 @@ export function PrimaryButton({
     variant === 'pink'
       ? { bg: colors.pink, fg: '#FFFFFF', border: colors.pink }
       : variant === 'noir'
-        ? { bg: colors.black, fg: '#FFFFFF', border: colors.black }
+        ? { bg: colors.lavenderDeep, fg: '#FFFFFF', border: colors.lavenderDeep }
         : variant === 'secondary'
           ? { bg: colors.lavenderLight, fg: colors.lavenderDeep, border: colors.lavenderBorder }
           : variant === 'ghost'
@@ -319,7 +320,10 @@ export function QueryComposer({
         multiline
         style={[styles.composerInput, { color: colors.foreground }]}
         returnKeyType="send"
-        onSubmitEditing={onSubmit}
+        onSubmitEditing={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          onSubmit();
+        }}
       />
       <View style={styles.composerFooter}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -338,10 +342,13 @@ export function QueryComposer({
         </View>
         <Pressable
           testID="send-query"
-          onPress={onSubmit}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            onSubmit();
+          }}
           style={({ pressed }) => [
             styles.sendButton,
-            { backgroundColor: colors.black, opacity: pressed ? 0.75 : 1 },
+            { backgroundColor: colors.lavenderDeep, opacity: pressed ? 0.8 : 1 },
           ]}
         >
           <Feather name="arrow-up" size={17} color="#FFFFFF" />
@@ -436,10 +443,18 @@ export function EvidenceCard({
 
 export function BackHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   const colors = useColors();
+  const router = useRouter();
   return (
     <View style={styles.backHeader}>
       <Pressable
-        onPress={() => Haptics.selectionAsync()}
+        onPress={() => {
+          Haptics.selectionAsync();
+          if (router.canGoBack()) {
+            router.back();
+          } else {
+            router.replace('/(tabs)');
+          }
+        }}
         style={[styles.backButton, { backgroundColor: colors.card, borderColor: colors.border }]}
       >
         <Feather name="arrow-left" size={17} color={colors.foreground} />

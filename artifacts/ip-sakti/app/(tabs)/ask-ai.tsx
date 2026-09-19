@@ -445,14 +445,14 @@ export default function AskAIScreen() {
                 style={{
                   alignSelf: 'flex-end',
                   maxWidth: '88%',
-                  backgroundColor: colors.black,
+                  backgroundColor: colors.lavenderDeep,
                   borderRadius: 18,
                   borderBottomRightRadius: 4,
                   paddingHorizontal: 15,
                   paddingVertical: 12,
                   marginBottom: 12,
                   borderWidth: 1,
-                  borderColor: '#262438',
+                  borderColor: colors.lavenderBorder,
                 }}
               >
                 <Text style={{ color: '#FFFFFF', fontSize: 13.5, lineHeight: 20, fontWeight: '500' }}>
@@ -479,20 +479,23 @@ export default function AskAIScreen() {
                       Namaste! I am your IP-SAKTI Sahayak.
                     </Text>
                   </View>
-                  <Text style={{ color: colors.inkSubtle, fontSize: 12.5, lineHeight: 18 }}>
-                    Ask any question regarding Ayurvedic product classification, patentability under Section 3(p), Biological Diversity Act (ABS) compliance, or clinical trial requirements under Rule 158B.
+                  <Text style={{ color: colors.inkSubtle, fontSize: 12, lineHeight: 18 }}>
+                    Ask any question regarding Ayurvedic patentability under Section 3(p)/3(d), Rule 158B licensing, or NBA Access and Benefit Sharing.
                   </Text>
                 </SurfaceCard>
 
-                {/* Suggested Consultation Starters */}
-                <View style={{ marginTop: 14, gap: 6 }}>
-                  <Text style={{ color: colors.inkSubtle, fontSize: 10, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase' }}>
-                    Quick Consultations
+                {/* Suggested Starters */}
+                <View style={{ marginTop: 12, gap: 6 }}>
+                  <Text style={{ color: colors.inkSubtle, fontSize: 10.5, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 2 }}>
+                    QUICK EXPLORATION STARTERS
                   </Text>
                   {SUGGESTED_QUESTIONS.map((q) => (
                     <Pressable
                       key={q}
-                      onPress={() => void sendQuery(q)}
+                      onPress={() => {
+                        Haptics.selectionAsync();
+                        setInput(q);
+                      }}
                       style={({ pressed }) => [
                         {
                           flexDirection: 'row',

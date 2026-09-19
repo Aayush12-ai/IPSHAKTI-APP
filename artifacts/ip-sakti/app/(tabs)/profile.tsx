@@ -45,11 +45,11 @@ export default function ProfileScreen() {
             width: 50,
             height: 50,
             borderRadius: 16,
-            backgroundColor: colors.black,
+            backgroundColor: colors.lavenderDeep,
             alignItems: 'center',
             justifyContent: 'center',
             borderWidth: 1.5,
-            borderColor: colors.pink,
+            borderColor: colors.lavenderBorder,
           }}
         >
           <Text style={{ color: '#FFFFFF', fontSize: 17, fontWeight: '800' }}>AJ</Text>

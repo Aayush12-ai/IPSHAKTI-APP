@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import {
   AppScreen,
   BrandHeader,
@@ -78,11 +79,13 @@ export default function HomeScreen() {
 
   const submit = () => {
     if (!query.trim()) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     router.push({ pathname: '/ask-ai', params: { draft: query.trim() } });
     setQuery('');
   };
 
   const selectPrompt = (prompt: string) => {
+    Haptics.selectionAsync();
     router.push({ pathname: '/ask-ai', params: { draft: prompt } });
   };
 
@@ -98,15 +101,15 @@ export default function HomeScreen() {
         Evidence-grounded Ayurvedic IP & regulatory decision intelligence.
       </Text>
 
-      {/* Hero Card with Obsidian Black, glowing lavender/pink decor */}
-      <View style={[styles.heroCard, { backgroundColor: colors.black }]}>
+      {/* Hero Card with Soothing Iris/Lavender Surface */}
+      <View style={[styles.heroCard, { backgroundColor: colors.lavenderDeep, borderColor: colors.lavenderBorder, borderWidth: 1 }]}>
         {/* Glow Spheres */}
         <View
           style={[
             styles.heroDecor,
             {
               backgroundColor: colors.lavender,
-              opacity: 0.28,
+              opacity: 0.35,
               transform: [{ scale: 1.2 }],
             },
           ]}
@@ -120,16 +123,16 @@ export default function HomeScreen() {
             height: 100,
             borderRadius: 50,
             backgroundColor: colors.pink,
-            opacity: 0.15,
+            opacity: 0.2,
           }}
         />
 
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.pink }} />
-            <Text style={[styles.heroLabel, { color: '#E9D5FF' }]}>IP-SAKTI COPILOT</Text>
+            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#FFFFFF' }} />
+            <Text style={[styles.heroLabel, { color: '#E0E7FF' }]}>IP-SAKTI COPILOT</Text>
           </View>
-          <Text style={{ color: colors.pink, fontSize: 10, fontWeight: '800' }}>EVIDENCE GROUNDED</Text>
+          <Text style={{ color: '#E0E7FF', fontSize: 10, fontWeight: '800' }}>EVIDENCE GROUNDED</Text>
         </View>
 
         <Text style={[styles.heroTitle, { color: '#FFFFFF' }]}>

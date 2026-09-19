@@ -28,7 +28,7 @@ const colors = {
     primaryForeground: '#FFFFFF',
     secondary: '#EEF2FF',
     secondaryForeground: '#4F46E5',
-    black: '#0F172A',
+    black: '#5B50A1',
     white: '#FFFFFF',
 
     // Lavender & Periwinkle Palette
