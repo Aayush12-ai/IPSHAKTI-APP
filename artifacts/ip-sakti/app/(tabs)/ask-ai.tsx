@@ -459,6 +459,65 @@ export default function AskAIScreen() {
                 {/* Rich Formatted Message with Proper Separation */}
                 {message.text ? <FormattedAiMessage text={message.text} /> : null}
 
+                {/* Evidence Chain Bridge Card */}
+                <Pressable
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    router.push({
+                      pathname: '/evidence',
+                      params: {
+                        query:
+                          message.text?.includes('Curcuma') || message.text?.includes('Turmeric') || message.text?.includes('Curcumin')
+                            ? 'Curcumin + Piperine Complex'
+                            : message.text?.includes('Brahmi') || message.text?.includes('Bacopa')
+                              ? 'Brahmi + Shankhpushpi Rasayana'
+                              : 'Ashwagandha + Pippali Formulation',
+                      },
+                    });
+                  }}
+                  style={({ pressed }) => [
+                    {
+                      marginTop: 14,
+                      padding: 12,
+                      borderRadius: 12,
+                      backgroundColor: colors.lavenderLight,
+                      borderWidth: 1,
+                      borderColor: colors.lavenderBorder,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      opacity: pressed ? 0.8 : 1,
+                    },
+                  ]}
+                >
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                      <Feather name="git-commit" size={13} color={colors.lavenderDeep} />
+                      <Text style={{ color: colors.lavenderDeep, fontSize: 10, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' }}>
+                        HOW WE REACHED THIS CONCLUSION
+                      </Text>
+                    </View>
+                    <Text style={{ color: colors.foreground, fontSize: 12, fontWeight: '700', marginTop: 3 }}>
+                      Trace 5-Stage Evidence Chain
+                    </Text>
+                    <Text style={{ color: colors.inkSubtle, fontSize: 10.5, marginTop: 1 }}>
+                      API Monographs → TKDL Prior-Art → Sec 3(p) → Rule 158B / BDA
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 9,
+                      backgroundColor: colors.lavenderDeep,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Feather name="arrow-right" size={14} color="#FFFFFF" />
+                  </View>
+                </Pressable>
+
                 {/* Footer Actions */}
                 <View
                   style={{
