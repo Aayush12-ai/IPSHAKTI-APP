@@ -55,19 +55,29 @@ function FormattedSection({
     lower.includes('ip') || lower.includes('patent') || lower.includes('section 3') || lower.includes('tkdl');
   const isSteps =
     lower.includes('step') || lower.includes('action') || lower.includes('roadmap') || lower.includes('recommend');
+  const isSources =
+    lower.includes('source') || lower.includes('citation') || lower.includes('reference') || lower.includes('statutory source');
 
   const iconName: React.ComponentProps<typeof Feather>['name'] = isExecutive
     ? 'zap'
-    : isRegulatory
-      ? 'layers'
-      : isIp
-        ? 'award'
-        : isSteps
-          ? 'check-circle'
-          : 'info';
+    : isSources
+      ? 'book-open'
+      : isRegulatory
+        ? 'layers'
+        : isIp
+          ? 'award'
+          : isSteps
+            ? 'check-circle'
+            : 'info';
 
-  const iconColor = isIp ? colors.pink : isExecutive ? colors.pink : colors.lavenderDeep;
-  const iconBg = isIp ? colors.pinkLight : colors.lavenderLight;
+  const iconColor = isSources
+    ? colors.lavenderDeep
+    : isIp
+      ? colors.pink
+      : isExecutive
+        ? colors.pink
+        : colors.lavenderDeep;
+  const iconBg = isSources ? colors.lavenderLight : isIp ? colors.pinkLight : colors.lavenderLight;
 
   if (isExecutive) {
     return (
@@ -94,6 +104,78 @@ function FormattedSection({
             {line.trim()}
           </Text>
         ))}
+      </View>
+    );
+  }
+
+  if (isSources) {
+    return (
+      <View
+        style={{
+          marginTop: 6,
+          marginBottom: 12,
+          padding: 12,
+          borderRadius: 13,
+          backgroundColor: colors.canvas,
+          borderWidth: 1,
+          borderColor: colors.border,
+        }}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <View style={{ width: 22, height: 22, borderRadius: 7, backgroundColor: colors.lavenderLight, alignItems: 'center', justifyContent: 'center' }}>
+              <Feather name="book-open" size={12} color={colors.lavenderDeep} />
+            </View>
+            <Text style={{ color: colors.lavenderDeep, fontSize: 11, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' }}>
+              VERIFIED STATUTORY & PRIMARY SOURCES
+            </Text>
+          </View>
+          <StatusBadge label="Cited" tone="lavender" />
+        </View>
+
+        <View style={{ gap: 6 }}>
+          {bodyLines.map((line, idx) => {
+            const trimmed = line.trim();
+            if (!trimmed) return null;
+
+            const bulletMatch = trimmed.match(/^[-*•\d.]+\s*(.*)$/);
+            const content = bulletMatch ? bulletMatch[1] : trimmed;
+            const colonIndex = content.indexOf(':');
+
+            if (colonIndex !== -1 && content.startsWith('**')) {
+              const sourceName = content.slice(0, colonIndex).replace(/\*\*/g, '').trim();
+              const citationDetails = content.slice(colonIndex + 1).trim();
+              return (
+                <View
+                  key={idx}
+                  style={{
+                    padding: 8,
+                    borderRadius: 9,
+                    backgroundColor: colors.card,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                  }}
+                >
+                  <Text style={{ color: colors.lavenderDeep, fontSize: 10, fontWeight: '800' }}>
+                    {sourceName}
+                  </Text>
+                  <Text style={{ color: colors.foreground, fontSize: 11, lineHeight: 15, marginTop: 2, fontWeight: '500' }}>
+                    {citationDetails.replace(/\*\*/g, '')}
+                  </Text>
+                </View>
+              );
+            }
+
+            return (
+              <View key={idx} style={{ flexDirection: 'row', gap: 6, alignItems: 'flex-start', paddingLeft: 4 }}>
+                <Feather name="check-circle" size={12} color={colors.lavenderDeep} style={{ marginTop: 2 }} />
+                <Text style={{ color: colors.foreground, fontSize: 11.5, lineHeight: 16, flex: 1 }}>
+                  {content.replace(/\*\*/g, '')}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
       </View>
     );
   }

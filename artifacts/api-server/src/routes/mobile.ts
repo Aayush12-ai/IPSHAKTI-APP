@@ -97,7 +97,8 @@ router.post("/mobile/chat", async (req, res) => {
                   "\n\n### Statutory & Regulatory Position\n- **Governing Law**: [Specify exact Act/Rule, e.g. Drugs & Cosmetics Act 1940 / Rule 158B / FSSAI Ayurveda Aahar 2022 / BDA 2023]\n- **Compliance Pathway**: [State AYUSH Form 25D, FSSAI Central License, CDSCO, or SBB]" +
                   "\n\n### IP & Patentability (Section 3(p) / Novelty)\n- **Traditional Knowledge (TKDL)**: [Direct analysis of traditional literature overlap]\n- **Novelty / Synergy Requirement**: [What is required to overcome Section 3(p) or Section 3(d)]" +
                   "\n\n### Actionable Next Steps\n1. [Immediate first step]\n2. [Second regulatory/IP milestone]\n3. [Third milestone or documentation requirement]" +
-                  "\n\nBe concise, crisp, authoritative, and practical. Do not invent statutes. Never produce long unbroken walls of text.",
+                  "\n\n### Primary Statutory Sources & Citations\n- **[Name of Primary Law/Monograph]**: [Exact section, rule, or pharmacopoeia citation, e.g., Drugs & Cosmetics Rules 1945, Rule 158B]\n- **[Second Source]**: [Exact section or gazette notification, e.g., Indian Patents Act 1970, Section 3(p) & Section 3(d)]\n- **[Third Source]**: [e.g., Biological Diversity Act 2002, Section 7 / NBA Form III / TKDL Database]" +
+                  "\n\nBe concise, crisp, authoritative, and practical. Always provide exact statutory and pharmacopoeial citations in the Primary Statutory Sources section. Do not invent statutes. Never produce long unbroken walls of text.",
               },
             ],
           },
