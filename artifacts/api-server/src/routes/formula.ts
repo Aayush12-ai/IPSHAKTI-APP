@@ -3,12 +3,10 @@ import {
   MobileFormulaAnalysisBody,
   MobileFormulaAnalysisResponse,
 } from "@workspace/api-zod";
+import { callGemini } from "../lib/gemini";
 
 const router: IRouter = Router();
 const INSUFFICIENT_EVIDENCE = "Insufficient evidence available.";
-const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-3.6-flash";
-const GEMINI_ENDPOINT =
-  "https://generativelanguage.googleapis.com/v1beta/models";
 
 type KnownIngredient = {
   aliases: string[];
@@ -336,18 +334,11 @@ function buildRepresentation(
   ].join(" ");
 }
 
-type GeminiResponse = {
-  candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-};
-
 async function explainWithGemini(
   formulation: string,
   representation: string,
   ingredients: ReturnType<typeof extractIngredients>,
 ) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return null;
-
   try {
     const prompt = [
       "You are IP-SAKTI, an expert Ayurvedic IP & regulatory intelligence assistant.",
@@ -358,30 +349,14 @@ async function explainWithGemini(
       `Ingredients: ${ingredients.map((ingredient) => `${ingredient.commonName} (${ingredient.botanicalName})`).join("; ")}`,
     ].join("\n");
 
-    const response = await fetch(
-      `${GEMINI_ENDPOINT}/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(apiKey)}`,
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{
-              text:
-                "You are IP SAKTI. Provide precise, evidence-grounded Ayurvedic patent and regulatory synthesis. Emphasize Section 3(p), Rule 158B, and NBA ABS compliance.",
-            }],
-          },
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.2, maxOutputTokens: 600 },
-        }),
-      },
-    );
+    const systemInstruction =
+      "You are IP SAKTI. Provide precise, evidence-grounded Ayurvedic patent and regulatory synthesis. Emphasize Section 3(p), Rule 158B, and NBA ABS compliance.";
 
-    if (!response.ok) return null;
-    const data = (await response.json()) as GeminiResponse;
-    return data.candidates?.[0]?.content?.parts
-      ?.map((part) => part.text ?? "")
-      .join("")
-      .trim() || null;
+    return await callGemini({
+      prompt,
+      systemInstruction,
+      generationConfig: { temperature: 0.2, maxOutputTokens: 600 },
+    });
   } catch {
     return null;
   }
