@@ -16,6 +16,7 @@ import {
   styles,
 } from '@/components/ip-sakti';
 import { useColors } from '@/hooks/useColors';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const quickActions = [
   {
@@ -74,6 +75,7 @@ const analyses = [
 
 export default function HomeScreen() {
   const colors = useColors();
+  const { t } = useLanguage();
   const router = useRouter();
   const [query, setQuery] = useState('');
 
@@ -93,12 +95,12 @@ export default function HomeScreen() {
     <AppScreen>
       <BrandHeader action={<HeaderActions />} />
 
-      <Text style={[styles.greeting, { color: colors.inkSubtle }]}>Good morning, Aayush</Text>
+      <Text style={[styles.greeting, { color: colors.inkSubtle }]}>{t('goodMorning', 'Good morning, Aayush')}</Text>
       <Text style={[styles.pageTitle, { color: colors.foreground }]}>
-        Make your next move{'\n'}with clarity & confidence.
+        {t('heroGreeting', 'Make your next move\nwith clarity & confidence.')}
       </Text>
       <Text style={[styles.pageSubtitle, { color: colors.inkSubtle }]}>
-        Evidence-grounded Ayurvedic IP & regulatory decision intelligence.
+        {t('heroSubtitle', 'Evidence-grounded Ayurvedic IP & regulatory decision intelligence.')}
       </Text>
 
       {/* Hero Card with Soothing Iris/Lavender Surface */}
@@ -136,10 +138,10 @@ export default function HomeScreen() {
         </View>
 
         <Text style={[styles.heroTitle, { color: '#FFFFFF' }]}>
-          What formulation or patent are you developing?
+          {t('heroCardTitle', 'What formulation or patent are you developing?')}
         </Text>
 
-        <QueryComposer value={query} onChangeText={setQuery} onSubmit={submit} />
+        <QueryComposer value={query} onChangeText={setQuery} onSubmit={submit} placeholder={t('composerPlaceholder')} />
       </View>
 
       {/* Quick Prompt Chips */}

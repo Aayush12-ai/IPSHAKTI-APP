@@ -1,8 +1,9 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { AppScreen, BrandHeader, HeaderActions, LanguagePill, SectionTitle, ToolCard, styles } from '@/components/ip-sakti';
+import { AppScreen, BrandHeader, HeaderActions, SectionTitle, ToolCard, styles } from '@/components/ip-sakti';
 import { useColors } from '@/hooks/useColors';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const tools = [
   { icon: 'package' as const, title: 'Formula Analyzer', description: 'Normalize ingredients and review evidence.', route: '/formula-analyzer' as const },
@@ -18,13 +19,14 @@ const tools = [
 
 export default function ToolsScreen() {
   const colors = useColors();
+  const { t } = useLanguage();
   const router = useRouter();
   return (
     <AppScreen>
       <BrandHeader action={<HeaderActions />} />
-      <Text style={[styles.pageTitle, { color: colors.foreground }]}>IP Tools</Text>
-      <Text style={[styles.pageSubtitle, { color: colors.inkSubtle }]}>Focused tools for every step from idea to market.</Text>
-      <SectionTitle title="Your toolkit" action={`${tools.length} tools`} />
+      <Text style={[styles.pageTitle, { color: colors.foreground }]}>{t('toolsTitle', 'IP Tools')}</Text>
+      <Text style={[styles.pageSubtitle, { color: colors.inkSubtle }]}>{t('toolsSubtitle', 'Focused tools for every step from idea to market.')}</Text>
+      <SectionTitle title={t('yourToolkit', 'Your toolkit')} action={`${tools.length} tools`} />
       <View style={styles.toolsGrid}>
         {tools.map((tool, index) => <ToolCard key={tool.title} {...tool} accent={index % 3 === 0 ? 'saffron' : 'sage'} onPress={() => router.push(tool.route)} />)}
       </View>

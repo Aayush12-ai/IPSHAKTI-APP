@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import {
   AppScreen,
   BrandHeader,
@@ -13,29 +13,31 @@ import {
   styles,
 } from '@/components/ip-sakti';
 import { useColors, useTheme } from '@/hooks/useColors';
+import { useLanguage } from '@/hooks/useLanguage';
 import * as Haptics from 'expo-haptics';
-
-const items = [
-  ['user', 'My Profile & Credentials', 'Ayurvedic Practitioner & Innovator'],
-  ['globe', 'Preferred Language', 'English (UK / IN)'],
-  ['briefcase', 'My Research Workspace', 'Projects, findings & grounded memory'],
-  ['bookmark', 'Saved Analyses & Citations', '4 active items'],
-  ['package', 'My Ayurvedic Products', '2 registered drafts'],
-  ['shield', 'IP Readiness Portfolio', '1 active passport (78/100)'],
-  ['bell', 'Regulatory Notifications', 'Up to date with AYUSH & FSSAI'],
-];
 
 export default function ProfileScreen() {
   const colors = useColors();
   const { theme, setTheme } = useTheme();
+  const { t, languageInfo, openLanguageModal } = useLanguage();
   const router = useRouter();
+
+  const items = [
+    ['user', 'My Profile & Credentials', 'Ayurvedic Practitioner & Innovator'],
+    ['globe', t('languageTitle', 'Preferred Language'), `${languageInfo.nativeName} (${languageInfo.name})`],
+    ['briefcase', 'My Research Workspace', 'Projects, findings & grounded memory'],
+    ['bookmark', 'Saved Analyses & Citations', '4 active items'],
+    ['package', 'My Ayurvedic Products', '2 registered drafts'],
+    ['shield', 'IP Readiness Portfolio', '1 active passport (78/100)'],
+    ['bell', 'Regulatory Notifications', 'Up to date with AYUSH & FSSAI'],
+  ];
 
   return (
     <AppScreen>
       <BrandHeader action={<HeaderActions />} />
-      <Text style={[styles.pageTitle, { color: colors.foreground }]}>Innovator Profile</Text>
+      <Text style={[styles.pageTitle, { color: colors.foreground }]}>{t('profileTitle', 'Innovator Profile')}</Text>
       <Text style={[styles.pageSubtitle, { color: colors.inkSubtle }]}>
-        Your dedicated workspace for responsible Ayurvedic innovation.
+        {t('profileSubtitle', 'Your dedicated workspace for responsible Ayurvedic innovation.')}
       </Text>
 
       {/* User Header Card */}
@@ -67,8 +69,62 @@ export default function ProfileScreen() {
         </View>
       </SurfaceCard>
 
+      {/* Language Selector Card */}
+      <SectionTitle title={t('languageTitle', 'Language & Script (भाषा)')} />
+      <SurfaceCard
+        onPress={() => {
+          Haptics.selectionAsync();
+          openLanguageModal();
+        }}
+        style={{
+          padding: 14,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 11 }}>
+          <View
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: 12,
+              backgroundColor: colors.lavenderLight,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Ionicons name="language" size={20} color={colors.lavenderDeep} />
+          </View>
+          <View>
+            <Text style={{ color: colors.foreground, fontSize: 14, fontWeight: '800' }}>
+              {languageInfo.nativeName} ({languageInfo.name})
+            </Text>
+            <Text style={{ color: colors.inkSubtle, fontSize: 11, marginTop: 1 }}>
+              {languageInfo.ayurvedicTradition} · {languageInfo.region}
+            </Text>
+          </View>
+        </View>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
+            paddingHorizontal: 9,
+            paddingVertical: 4,
+            borderRadius: 8,
+            backgroundColor: colors.surfaceMuted,
+          }}
+        >
+          <Text style={{ color: colors.lavenderDeep, fontSize: 11, fontWeight: '800' }}>
+            {languageInfo.badge}
+          </Text>
+          <Feather name="chevron-right" size={13} color={colors.lavenderDeep} />
+        </View>
+      </SurfaceCard>
+
       {/* Theme Appearance Selector Card */}
-      <SectionTitle title="App Appearance & Theme" />
+      <SectionTitle title={t('appearanceTitle', 'App Appearance & Theme')} />
       <SurfaceCard style={{ padding: 14 }}>
         <Text style={{ color: colors.inkSubtle, fontSize: 11, marginBottom: 10, fontWeight: '600' }}>
           Select your preferred visual aesthetic:

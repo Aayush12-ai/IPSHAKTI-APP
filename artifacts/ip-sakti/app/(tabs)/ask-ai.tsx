@@ -20,6 +20,7 @@ import {
   styles,
 } from '@/components/ip-sakti';
 import { useColors } from '@/hooks/useColors';
+import { useLanguage } from '@/hooks/useLanguage';
 import { useMobileChat, useMobileMemoryCreate } from '@workspace/api-client-react';
 import {
   getActiveProjectId,
@@ -325,6 +326,7 @@ function FormattedAiMessage({ text }: { text: string }) {
 
 export default function AskAIScreen() {
   const colors = useColors();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const params = useLocalSearchParams<{ draft?: string; projectId?: string }>();
   const [input, setInput] = useState(typeof params.draft === 'string' ? params.draft : '');
@@ -369,10 +371,10 @@ export default function AskAIScreen() {
     try {
       const response = await chatMutation.mutateAsync({
         data: {
-          question: trimmed,
+          question: language !== 'en' ? `[Preferred Language: ${language}] ${trimmed}` : trimmed,
           clientId,
-          ...(activeProjectId ? { projectId: activeProjectId } : {}),
-          ...(sessionId ? { sessionId } : {}),
+          projectId: activeProjectId ?? undefined,
+          sessionId: sessionId ?? undefined,
         },
       });
       setSessionId(response.sessionId);
@@ -432,9 +434,9 @@ export default function AskAIScreen() {
     <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={0} style={{ flex: 1, backgroundColor: colors.canvas }}>
       <AppScreen>
         <BrandHeader action={<HeaderActions />} />
-        <Text style={[styles.pageTitle, { color: colors.foreground }]}>Ask IP-SAKTI</Text>
+        <Text style={[styles.pageTitle, { color: colors.foreground }]}>{t('askAiTitle', 'Ask IP-SAKTI')}</Text>
         <Text style={[styles.pageSubtitle, { color: colors.inkSubtle }]}>
-          Evidence-grounded Ayurvedic regulatory & patent intelligence.
+          {t('askAiSubtitle', 'Evidence-grounded Ayurvedic regulatory & patent intelligence.')}
         </Text>
 
         <View style={{ marginTop: 20 }}>
@@ -476,11 +478,11 @@ export default function AskAIScreen() {
                       <Feather name="shield" size={14} color={colors.lavenderDeep} />
                     </View>
                     <Text style={{ color: colors.foreground, fontSize: 13, fontWeight: '800' }}>
-                      Namaste! I am your IP-SAKTI Sahayak.
+                      {t('welcomeHeader', 'Namaste! I am your IP-SAKTI Sahayak.')}
                     </Text>
                   </View>
                   <Text style={{ color: colors.inkSubtle, fontSize: 12, lineHeight: 18 }}>
-                    Ask any question regarding Ayurvedic patentability under Section 3(p)/3(d), Rule 158B licensing, or NBA Access and Benefit Sharing.
+                    {t('welcomeMessage', 'Ask any question regarding Ayurvedic patentability under Section 3(p)/3(d), Rule 158B licensing, or NBA Access and Benefit Sharing.')}
                   </Text>
                 </SurfaceCard>
 
@@ -545,66 +547,7 @@ export default function AskAIScreen() {
                 {/* Rich Formatted Message with Proper Separation */}
                 {message.text ? <FormattedAiMessage text={message.text} /> : null}
 
-                {/* Evidence Chain Bridge Card */}
-                <Pressable
-                  onPress={() => {
-                    Haptics.selectionAsync();
-                    router.push({
-                      pathname: '/evidence',
-                      params: {
-                        query:
-                          message.text?.includes('Curcuma') || message.text?.includes('Turmeric') || message.text?.includes('Curcumin')
-                            ? 'Curcumin + Piperine Complex'
-                            : message.text?.includes('Brahmi') || message.text?.includes('Bacopa')
-                              ? 'Brahmi + Shankhpushpi Rasayana'
-                              : 'Ashwagandha + Pippali Formulation',
-                      },
-                    });
-                  }}
-                  style={({ pressed }) => [
-                    {
-                      marginTop: 14,
-                      padding: 12,
-                      borderRadius: 12,
-                      backgroundColor: colors.lavenderLight,
-                      borderWidth: 1,
-                      borderColor: colors.lavenderBorder,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      opacity: pressed ? 0.8 : 1,
-                    },
-                  ]}
-                >
-                  <View style={{ flex: 1, marginRight: 8 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                      <Feather name="git-commit" size={13} color={colors.lavenderDeep} />
-                      <Text style={{ color: colors.lavenderDeep, fontSize: 10, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' }}>
-                        HOW WE REACHED THIS CONCLUSION
-                      </Text>
-                    </View>
-                    <Text style={{ color: colors.foreground, fontSize: 12, fontWeight: '700', marginTop: 3 }}>
-                      Trace 5-Stage Evidence Chain
-                    </Text>
-                    <Text style={{ color: colors.inkSubtle, fontSize: 10.5, marginTop: 1 }}>
-                      API Monographs → TKDL Prior-Art → Sec 3(p) → Rule 158B / BDA
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: 9,
-                      backgroundColor: colors.lavenderDeep,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Feather name="arrow-right" size={14} color="#FFFFFF" />
-                  </View>
-                </Pressable>
-
-                {/* Footer Actions */}
+                {/* Footer Actions (Clean, Uncluttered, with On-Demand Evidence Chain) */}
                 <View
                   style={{
                     borderTopWidth: 1,
@@ -616,35 +559,75 @@ export default function AskAIScreen() {
                     justifyContent: 'space-between',
                   }}
                 >
-                  {message.projectId ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    {/* On-Demand Evidence Chain Button - ONLY appears as a clean option */}
                     <Pressable
-                      onPress={() => void saveToResearch(message)}
-                      disabled={saveMemoryMutation.isPending || savedMessageIds.includes(message.id)}
+                      onPress={() => {
+                        Haptics.selectionAsync();
+                        router.push({
+                          pathname: '/evidence',
+                          params: {
+                            query:
+                              message.text?.includes('Curcuma') || message.text?.includes('Turmeric') || message.text?.includes('Curcumin')
+                                ? 'Curcumin + Piperine Complex'
+                                : message.text?.includes('Brahmi') || message.text?.includes('Bacopa')
+                                  ? 'Brahmi + Shankhpushpi Rasayana'
+                                  : 'Ashwagandha + Pippali Formulation',
+                          },
+                        });
+                      }}
                       style={({ pressed }) => [
                         {
                           flexDirection: 'row',
                           alignItems: 'center',
-                          gap: 6,
-                          opacity: pressed || saveMemoryMutation.isPending ? 0.6 : 1,
+                          gap: 5,
+                          paddingHorizontal: 8,
+                          paddingVertical: 4,
+                          borderRadius: 8,
+                          backgroundColor: colors.surfaceMuted,
+                          opacity: pressed ? 0.7 : 1,
                         },
                       ]}
                     >
-                      <Feather
-                        name={savedMessageIds.includes(message.id) ? 'check-circle' : 'bookmark'}
-                        size={14}
-                        color={savedMessageIds.includes(message.id) ? colors.success : colors.lavenderDeep}
-                      />
-                      <Text
-                        style={{
-                          color: savedMessageIds.includes(message.id) ? colors.success : colors.lavenderDeep,
-                          fontSize: 11.5,
-                          fontWeight: '700',
-                        }}
-                      >
-                        {savedMessageIds.includes(message.id) ? 'Saved to Research' : 'Save Finding'}
+                      <Feather name="git-commit" size={12} color={colors.lavenderDeep} />
+                      <Text style={{ color: colors.lavenderDeep, fontSize: 11, fontWeight: '700' }}>
+                        {t('traceEvidence', 'Evidence Chain')}
                       </Text>
                     </Pressable>
-                  ) : <View />}
+
+                    {message.projectId ? (
+                      <Pressable
+                        onPress={() => void saveToResearch(message)}
+                        disabled={saveMemoryMutation.isPending || savedMessageIds.includes(message.id)}
+                        style={({ pressed }) => [
+                          {
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 5,
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                            borderRadius: 8,
+                            opacity: pressed || saveMemoryMutation.isPending ? 0.6 : 1,
+                          },
+                        ]}
+                      >
+                        <Feather
+                          name={savedMessageIds.includes(message.id) ? 'check-circle' : 'bookmark'}
+                          size={12}
+                          color={savedMessageIds.includes(message.id) ? colors.success : colors.lavenderDeep}
+                        />
+                        <Text
+                          style={{
+                            color: savedMessageIds.includes(message.id) ? colors.success : colors.lavenderDeep,
+                            fontSize: 11,
+                            fontWeight: '700',
+                          }}
+                        >
+                          {savedMessageIds.includes(message.id) ? t('savedToResearch', 'Saved') : t('saveFinding', 'Save')}
+                        </Text>
+                      </Pressable>
+                    ) : null}
+                  </View>
 
                   <Pressable
                     onPress={() => void copyMessage(message)}
@@ -663,11 +646,11 @@ export default function AskAIScreen() {
                   >
                     <Feather
                       name={copiedId === message.id ? 'check' : 'copy'}
-                      size={13}
+                      size={12}
                       color={copiedId === message.id ? colors.lavenderDeep : colors.inkSubtle}
                     />
                     <Text style={{ color: copiedId === message.id ? colors.lavenderDeep : colors.inkSubtle, fontSize: 11, fontWeight: '600' }}>
-                      {copiedId === message.id ? 'Copied' : 'Copy'}
+                      {copiedId === message.id ? t('copied', 'Copied') : t('copy', 'Copy')}
                     </Text>
                   </Pressable>
                 </View>

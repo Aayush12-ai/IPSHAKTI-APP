@@ -67,8 +67,12 @@ export function AppScreen({
   );
 }
 
+import { useTheme } from '@/hooks/useColors';
+import { useLanguage } from '@/hooks/useLanguage';
+
 export function BrandHeader({ action }: { action?: ReactNode }) {
   const colors = useColors();
+  const { t } = useLanguage();
   return (
     <View style={styles.brandHeader}>
       <View style={styles.brandLockup}>
@@ -84,12 +88,12 @@ export function BrandHeader({ action }: { action?: ReactNode }) {
             <Text style={[styles.brandName, { color: colors.foreground }]}>IP-SAKTI</Text>
             <View style={[styles.brandBadge, { backgroundColor: colors.lavenderLight }]}>
               <Text style={{ color: colors.lavenderDeep, fontSize: 9, fontWeight: '800', letterSpacing: 0.5 }}>
-                AI SAHAYAK
+                {t('aiSahayak', 'AI SAHAYAK')}
               </Text>
             </View>
           </View>
           <Text style={[styles.brandSub, { color: colors.inkSubtle }]}>
-            TRADITIONAL WISDOM · LEGAL CLARITY
+            {t('brandSub', 'TRADITIONAL WISDOM · LEGAL CLARITY')}
           </Text>
         </View>
       </View>
@@ -97,8 +101,6 @@ export function BrandHeader({ action }: { action?: ReactNode }) {
     </View>
   );
 }
-
-import { useTheme } from '@/hooks/useColors';
 
 export function ThemeTogglePill() {
   const colors = useColors();
@@ -148,9 +150,13 @@ export function HeaderActions() {
 
 export function LanguagePill() {
   const colors = useColors();
+  const { languageInfo, openLanguageModal } = useLanguage();
   return (
     <Pressable
-      onPress={() => Haptics.selectionAsync()}
+      onPress={() => {
+        Haptics.selectionAsync();
+        openLanguageModal();
+      }}
       style={({ pressed }) => [
         styles.languagePill,
         {
@@ -160,10 +166,10 @@ export function LanguagePill() {
         },
       ]}
       accessibilityRole="button"
-      accessibilityLabel="Choose language"
+      accessibilityLabel={`Choose language. Currently ${languageInfo.name}`}
     >
       <Ionicons name="language-outline" size={14} color={colors.lavender} />
-      <Text style={[styles.languageText, { color: colors.foreground }]}>EN</Text>
+      <Text style={[styles.languageText, { color: colors.foreground }]}>{languageInfo.badge}</Text>
     </Pressable>
   );
 }

@@ -48,6 +48,8 @@ function RootLayoutNav() {
 }
 
 import { ThemeProvider } from '@/hooks/useColors';
+import { LanguageProvider } from '@/hooks/useLanguage';
+import { LanguageModal } from '@/components/LanguageModal';
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -67,18 +69,21 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <SafeAreaProvider>
-        <StatusBar style="auto" />
-        <ErrorBoundary>
-          <QueryClientProvider client={queryClient}>
-            <GestureHandlerRootView>
-              <KeyboardProvider>
-                <RootLayoutNav />
-              </KeyboardProvider>
-            </GestureHandlerRootView>
-          </QueryClientProvider>
-        </ErrorBoundary>
-      </SafeAreaProvider>
+      <LanguageProvider>
+        <SafeAreaProvider>
+          <StatusBar style="auto" />
+          <ErrorBoundary>
+            <QueryClientProvider client={queryClient}>
+              <GestureHandlerRootView>
+                <KeyboardProvider>
+                  <RootLayoutNav />
+                  <LanguageModal />
+                </KeyboardProvider>
+              </GestureHandlerRootView>
+            </QueryClientProvider>
+          </ErrorBoundary>
+        </SafeAreaProvider>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

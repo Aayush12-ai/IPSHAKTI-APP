@@ -93,7 +93,8 @@ router.post("/mobile/chat", async (req, res) => {
       "### Primary Statutory Sources & Citations\n" +
       "- **[Primary Statute]**: [Exact section, rule, or pharmacopoeia citation, e.g., Indian Patents Act 1970, Section 3(p) & Section 3(d)]\n" +
       "- **[Regulatory Source]**: [e.g., Drugs & Cosmetics Rules 1945, Rule 158B / BDA 2023 Section 6 & 7]\n" +
-      "- **[International / Prior Art Source]**: [e.g., WIPO PCT Guidelines / TKDL Access Database / USPTO MPEP 2106]";
+      "- **[International / Prior Art Source]**: [e.g., WIPO PCT Guidelines / TKDL Access Database / USPTO MPEP 2106]\n\n" +
+      "MULTILINGUAL INSTRUCTION: If the user query is in Hindi, Sanskrit, Tamil, Telugu, Bengali, Gujarati, Marathi, or has a [Preferred Language: ...] tag, formulate your entire response in that requested language with natural fluency, dignity, and accuracy, while maintaining exact legal citations (e.g., Drugs & Cosmetics Rules Rule 158B, Patents Act Section 3(p)).";
 
     const answer = await callGemini({
       prompt: enrichedQuestion,

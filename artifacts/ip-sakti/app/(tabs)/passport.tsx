@@ -14,6 +14,7 @@ import {
   styles,
 } from '@/components/ip-sakti';
 import { useColors } from '@/hooks/useColors';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const rows = [
   ['Patent readiness & novelty', 'Ready', 'success', 'award'],
@@ -26,14 +27,15 @@ const rows = [
 
 export default function PassportScreen() {
   const colors = useColors();
+  const { t } = useLanguage();
   const router = useRouter();
 
   return (
     <AppScreen>
       <BrandHeader action={<HeaderActions />} />
-      <Text style={[styles.pageTitle, { color: colors.foreground }]}>IP Readiness Passport</Text>
+      <Text style={[styles.pageTitle, { color: colors.foreground }]}>{t('passportTitle', 'IP Readiness Passport')}</Text>
       <Text style={[styles.pageSubtitle, { color: colors.inkSubtle }]}>
-        Ashwagandha Calm Formula · Comprehensive IP & Statutory Diagnostic
+        Ashwagandha Calm Formula · {t('passportSubtitle', 'Comprehensive IP & Statutory Diagnostic')}
       </Text>
 
       {/* Readiness Score Gauge */}
