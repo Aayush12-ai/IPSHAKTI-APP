@@ -1,9 +1,34 @@
+import fs from "fs";
+import path from "path";
 import { logger } from "./logger";
 
 const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
 
+function readEnvFileValue(keyName: string): string {
+  try {
+    const candidatePaths = [
+      path.resolve(process.cwd(), ".env"),
+      path.resolve(process.cwd(), "..", ".env"),
+      path.resolve(process.cwd(), "..", "..", ".env"),
+    ];
+    for (const p of candidatePaths) {
+      if (fs.existsSync(p)) {
+        const content = fs.readFileSync(p, "utf-8");
+        const match = content.match(new RegExp(`^${keyName}=(.*)$`, "m"));
+        if (match && match[1].trim()) {
+          return match[1].trim().replace(/^['"]|['"]$/g, "");
+        }
+      }
+    }
+  } catch {
+    // Ignore file read errors
+  }
+  return "";
+}
+
 export function getGeminiApiKeys(): string[] {
-  const raw = process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEYS || "";
+  const envVal = readEnvFileValue("GEMINI_API_KEY") || readEnvFileValue("GEMINI_API_KEYS");
+  const raw = envVal || process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEYS || "";
   if (!raw.trim()) return [];
 
   // Split by ||, comma, semicolon, or newline
@@ -40,7 +65,11 @@ export async function callGemini(options: GeminiRequestOptions): Promise<string 
     return null;
   }
 
-  const model = options.model ?? process.env.GEMINI_MODEL ?? "gemini-3.6-flash";
+  const model =
+    options.model ||
+    readEnvFileValue("GEMINI_MODEL") ||
+    process.env.GEMINI_MODEL ||
+    "gemini-3.6-flash";
   const url = `${GEMINI_ENDPOINT}/${encodeURIComponent(model)}:generateContent`;
 
   const requestBody: Record<string, unknown> = {
