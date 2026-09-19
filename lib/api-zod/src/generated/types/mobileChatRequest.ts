@@ -5,9 +5,6 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-export interface HealthStatus {
-  status: string;
-}
 
 export interface MobileChatRequest {
   /**
@@ -16,12 +13,3 @@ export interface MobileChatRequest {
      */
   question: string;
 }
-
-export interface MobileChatResult {
-  answer: string;
-}
-
-export interface ErrorResponse {
-  message: string;
-}
-

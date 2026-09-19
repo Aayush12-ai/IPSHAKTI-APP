@@ -14,6 +14,7 @@ import {
   styles,
 } from '@/components/ip-sakti';
 import { useColors } from '@/hooks/useColors';
+import { useMobileChat } from '@workspace/api-client-react';
 
 type Message = { id: string; role: 'user' | 'assistant'; text?: string };
 
@@ -53,13 +54,29 @@ export default function AskAIScreen() {
   const [input, setInput] = useState(params.draft ?? '');
   const [messages, setMessages] = useState<Message[]>([
     { id: 'welcome', role: 'assistant' },
-    { id: 'question', role: 'user', text: 'Can I patent my Ashwagandha formulation?' },
   ]);
-  const send = () => {
+  const chatMutation = useMobileChat();
+
+  const send = async () => {
     const trimmed = input.trim();
-    if (!trimmed) return;
-    setMessages((prev) => [...prev, { id: `${Date.now()}`, role: 'user', text: trimmed }, { id: `${Date.now()}-reply`, role: 'assistant' }]);
+    if (!trimmed || chatMutation.isPending) return;
+    const messageId = `${Date.now()}`;
+    setMessages((prev) => [...prev, { id: messageId, role: 'user', text: trimmed }]);
     setInput('');
+
+    try {
+      const response = await chatMutation.mutateAsync({ data: { question: trimmed } });
+      setMessages((prev) => [...prev, { id: `${messageId}-reply`, role: 'assistant', text: response.answer }]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `${messageId}-error`,
+          role: 'assistant',
+          text: 'I could not reach the AI assistant. Please try again in a moment.',
+        },
+      ]);
+    }
   };
   return (
     <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={0} style={{ flex: 1, backgroundColor: colors.canvas }}>
@@ -78,8 +95,17 @@ export default function AskAIScreen() {
                 <View style={{ width: 27, height: 27, backgroundColor: colors.saffronLight, borderRadius: 9, alignItems: 'center', justifyContent: 'center' }}><Feather name="zap" size={14} color={colors.warning} /></View>
                 <Text style={{ color: colors.inkSubtle, fontSize: 12, paddingTop: 5 }}>Here’s a structured view of your question.</Text>
               </View>
-            ) : <StructuredResponse key={message.id} />,
+            ) : (
+              <SurfaceCard key={message.id} style={{ marginBottom: 10, padding: 14 }}>
+                <Text style={{ color: colors.foreground, fontSize: 13, lineHeight: 20 }}>{message.text}</Text>
+              </SurfaceCard>
+            ),
           )}
+          {chatMutation.isPending ? (
+            <SurfaceCard style={{ marginBottom: 10, padding: 14 }}>
+              <Text style={{ color: colors.inkSubtle, fontSize: 13 }}>Reviewing your question…</Text>
+            </SurfaceCard>
+          ) : null}
         </View>
         <View style={{ height: 18 }} />
         <Text style={{ color: colors.inkSubtle, fontSize: 10, textAlign: 'center', lineHeight: 15, marginHorizontal: 20 }}>AI-generated guidance — not a substitute for professional legal advice.</Text>
