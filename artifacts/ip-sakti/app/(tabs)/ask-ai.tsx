@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
+  Platform,
   Pressable,
+  ScrollView,
   Text,
   View,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
@@ -37,7 +40,6 @@ const SUGGESTED_QUESTIONS = [
   'Does our herbal drink qualify under FSSAI Ayurveda Aahar 2022?',
 ];
 
-import { Platform } from 'react-native';
 
 function MarkdownText({
   text,
@@ -387,6 +389,7 @@ function FormattedAiMessage({ text }: { text: string }) {
 
 export default function AskAIScreen() {
   const colors = useColors();
+  const insets = useSafeAreaInsets();
   const { t, language } = useLanguage();
   const router = useRouter();
   const params = useLocalSearchParams<{ draft?: string; projectId?: string }>();
@@ -402,6 +405,7 @@ export default function AskAIScreen() {
   const [savedMessageIds, setSavedMessageIds] = useState<string[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  const scrollViewRef = useRef<ScrollView>(null);
   const chatMutation = useMobileChat();
   const saveMemoryMutation = useMobileMemoryCreate();
 
@@ -422,12 +426,21 @@ export default function AskAIScreen() {
     }
   }, [params.draft, clientId]);
 
+  // Auto-scroll down whenever new messages are added or AI is evaluating
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [messages, chatMutation.isPending]);
+
   const sendQuery = async (queryText: string) => {
     const trimmed = queryText.trim();
     if (!trimmed || !clientId || chatMutation.isPending) return;
     const messageId = `${Date.now()}`;
     setMessages((prev) => [...prev, { id: messageId, role: 'user', text: trimmed }]);
     setInput('');
+    setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 50);
 
     try {
       const response = await chatMutation.mutateAsync({
@@ -450,6 +463,7 @@ export default function AskAIScreen() {
           projectId: response.projectId,
         },
       ]);
+      setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -459,6 +473,7 @@ export default function AskAIScreen() {
           text: 'I could not reach the IP-SAKTI AI assistant. Please check your backend server connection and try again.',
         },
       ]);
+      setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
     }
   };
 
@@ -508,17 +523,43 @@ export default function AskAIScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       style={{ flex: 1, backgroundColor: colors.canvas }}
     >
-      <AppScreen>
-        <BrandHeader action={<HeaderActions />} />
-        <Text style={[styles.pageTitle, { color: colors.foreground }]}>{t('askAiTitle', 'Ask IP-SAKTI')}</Text>
-        <Text style={[styles.pageSubtitle, { color: colors.inkSubtle }]}>
-          {t('askAiSubtitle', 'Evidence-grounded Ayurvedic regulatory & patent intelligence.')}
-        </Text>
+      <View style={{ flex: 1 }}>
+        {/* Fixed Header */}
+        <View
+          style={{
+            paddingTop: insets.top + 12,
+            paddingHorizontal: 18,
+            paddingBottom: 10,
+            backgroundColor: colors.canvas,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+            zIndex: 10,
+          }}
+        >
+          <BrandHeader action={<HeaderActions />} />
+          <Text style={[styles.pageTitle, { color: colors.foreground, fontSize: 22, lineHeight: 28 }]}>
+            {t('askAiTitle', 'Ask IP-SAKTI')}
+          </Text>
+          <Text style={[styles.pageSubtitle, { color: colors.inkSubtle, fontSize: 12, lineHeight: 17, marginTop: 2 }]}>
+            {t('askAiSubtitle', 'Evidence-grounded Ayurvedic regulatory & patent intelligence.')}
+          </Text>
+        </View>
 
-        <View style={{ marginTop: 20 }}>
+        {/* Scrollable Chat Message Stream with Auto-Scroll to Response */}
+        <ScrollView
+          ref={scrollViewRef}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 16, paddingBottom: 24 }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}
+          onContentSizeChange={() => {
+            scrollViewRef.current?.scrollToEnd({ animated: true });
+          }}
+        >
           {messages.map((message) =>
             message.role === 'user' ? (
               <View
@@ -531,7 +572,7 @@ export default function AskAIScreen() {
                   borderBottomRightRadius: 4,
                   paddingHorizontal: 15,
                   paddingVertical: 12,
-                  marginBottom: 12,
+                  marginBottom: 14,
                   borderWidth: 1,
                   borderColor: colors.lavenderBorder,
                 }}
@@ -752,14 +793,24 @@ export default function AskAIScreen() {
               </View>
             </SurfaceCard>
           )}
-        </View>
 
-        <View style={{ height: 16 }} />
-        <Text style={{ color: colors.inkSubtle, fontSize: 10, textAlign: 'center', lineHeight: 15, marginHorizontal: 20 }}>
-          IP-SAKTI AI provides decision support grounded in Indian statutes — verify with a registered patent attorney for filing.
-        </Text>
+          <View style={{ height: 10 }} />
+          <Text style={{ color: colors.inkSubtle, fontSize: 9.5, textAlign: 'center', lineHeight: 14, marginHorizontal: 20 }}>
+            IP-SAKTI AI provides decision support grounded in Indian statutes — verify with a registered patent attorney for filing.
+          </Text>
+        </ScrollView>
 
-        <View style={{ marginTop: 12 }}>
+        {/* Fixed Pinned Bottom Composer (Never Hidden by Keyboard) */}
+        <View
+          style={{
+            paddingHorizontal: 16,
+            paddingTop: 8,
+            paddingBottom: Platform.OS === 'ios' ? insets.bottom + 8 : insets.bottom + 12,
+            backgroundColor: colors.canvas,
+            borderTopWidth: 1,
+            borderTopColor: colors.border,
+          }}
+        >
           <QueryComposer
             value={input}
             onChangeText={setInput}
@@ -767,7 +818,7 @@ export default function AskAIScreen() {
             placeholder="Ask a follow-up or specify a formulation..."
           />
         </View>
-      </AppScreen>
+      </View>
     </KeyboardAvoidingView>
   );
 }
