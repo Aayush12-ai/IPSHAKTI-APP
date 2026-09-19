@@ -47,7 +47,7 @@ export function AppScreen({
   const insets = useSafeAreaInsets();
   const style = [
     styles.screenContent,
-    { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 98 },
+    { paddingTop: insets.top + 16, paddingBottom: 28 },
     contentStyle,
   ];
 

@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -553,36 +555,62 @@ export default function AskAIScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       style={{ flex: 1, backgroundColor: colors.canvas }}
     >
       <View style={{ flex: 1 }}>
         {/* Fixed Header */}
         <View
           style={{
-            paddingTop: insets.top + 12,
-            paddingHorizontal: 18,
+            paddingTop: insets.top + 10,
+            paddingHorizontal: 16,
             paddingBottom: 10,
-            backgroundColor: colors.canvas,
+            backgroundColor: colors.card,
             borderBottomWidth: 1,
             borderBottomColor: colors.border,
             zIndex: 10,
           }}
         >
           <BrandHeader action={<HeaderActions />} />
-          <Text style={[styles.pageTitle, { color: colors.foreground, fontSize: 22, lineHeight: 28 }]}>
-            {t('askAiTitle', 'Ask IP-SAKTI')}
-          </Text>
-          <Text style={[styles.pageSubtitle, { color: colors.inkSubtle, fontSize: 12, lineHeight: 17, marginTop: 2 }]}>
-            {t('askAiSubtitle', 'Evidence-grounded Ayurvedic regulatory & patent intelligence.')}
-          </Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: -4 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.pageTitle, { color: colors.foreground, fontSize: 21, lineHeight: 26 }]}>
+                {t('askAiTitle', 'Ask IP-SAKTI')}
+              </Text>
+              <Text style={[styles.pageSubtitle, { color: colors.inkSubtle, fontSize: 11.5, lineHeight: 16, marginTop: 1 }]}>
+                {t('askAiSubtitle', 'Evidence-grounded Ayurvedic regulatory & patent intelligence.')}
+              </Text>
+            </View>
+            {messages.length > 1 ? (
+              <Pressable
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  setMessages([{ id: 'welcome', role: 'assistant' }]);
+                }}
+                style={({ pressed }) => [
+                  {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                    paddingHorizontal: 9,
+                    paddingVertical: 5,
+                    borderRadius: 8,
+                    backgroundColor: colors.lavenderLight,
+                    opacity: pressed ? 0.7 : 1,
+                  },
+                ]}
+              >
+                <Feather name="rotate-ccw" size={11} color={colors.lavenderDeep} />
+                <Text style={{ color: colors.lavenderDeep, fontSize: 10.5, fontWeight: '700' }}>Reset</Text>
+              </Pressable>
+            ) : null}
+          </View>
         </View>
 
         {/* Scrollable Chat Message Stream with Auto-Scroll to Response */}
         <ScrollView
           ref={scrollViewRef}
           style={{ flex: 1 }}
-          contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 16, paddingBottom: 24 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 16 }}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
@@ -710,7 +738,7 @@ export default function AskAIScreen() {
                   }}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    {/* On-Demand Evidence Chain Button - ONLY appears as a clean option */}
+                    {/* On-Demand Evidence Chain Button */}
                     <Pressable
                       onPress={() => {
                         Haptics.selectionAsync();
@@ -816,7 +844,7 @@ export default function AskAIScreen() {
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <Feather name="shield" size={14} color={colors.lavenderDeep} />
+                <ActivityIndicator size="small" color={colors.lavenderDeep} />
                 <Text style={{ color: colors.lavenderDeep, fontSize: 12.5, fontWeight: '700' }}>
                   IP-SAKTI is evaluating patent literature & statutory databases...
                 </Text>
@@ -824,29 +852,115 @@ export default function AskAIScreen() {
             </SurfaceCard>
           )}
 
-          <View style={{ height: 10 }} />
+          <View style={{ height: 6 }} />
           <Text style={{ color: colors.inkSubtle, fontSize: 9.5, textAlign: 'center', lineHeight: 14, marginHorizontal: 20 }}>
             IP-SAKTI AI provides decision support grounded in Indian statutes — verify with a registered patent attorney for filing.
           </Text>
         </ScrollView>
 
-        {/* Fixed Pinned Bottom Composer (Never Hidden by Keyboard) */}
+        {/* Modern Fixed Bottom Chat Composer (Cleanly Docked Above Tab Bar) */}
         <View
           style={{
-            paddingHorizontal: 16,
+            paddingHorizontal: 12,
             paddingTop: 8,
-            paddingBottom: Platform.OS === 'ios' ? insets.bottom + 8 : insets.bottom + 12,
-            backgroundColor: colors.canvas,
+            paddingBottom: 8,
+            backgroundColor: colors.card,
             borderTopWidth: 1,
             borderTopColor: colors.border,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.04,
+            shadowRadius: 3,
+            elevation: 4,
           }}
         >
-          <QueryComposer
-            value={input}
-            onChangeText={setInput}
-            onSubmit={send}
-            placeholder="Ask a follow-up or specify a formulation..."
-          />
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'flex-end',
+              gap: 8,
+              backgroundColor: colors.canvas,
+              borderRadius: 22,
+              borderWidth: 1.5,
+              borderColor: input.trim().length > 0 ? colors.lavender : colors.border,
+              paddingLeft: 14,
+              paddingRight: 6,
+              paddingVertical: 6,
+              minHeight: 46,
+            }}
+          >
+            <TextInput
+              testID="chat-input"
+              value={input}
+              onChangeText={setInput}
+              placeholder={t('chatInputPlaceholder', 'Ask a follow-up or specify a formulation...')}
+              placeholderTextColor={colors.inkSubtle}
+              multiline
+              maxLength={1000}
+              style={{
+                flex: 1,
+                fontSize: 13.5,
+                lineHeight: 19,
+                color: colors.foreground,
+                maxHeight: 110,
+                paddingTop: Platform.OS === 'ios' ? 6 : 4,
+                paddingBottom: Platform.OS === 'ios' ? 6 : 4,
+                textAlignVertical: 'center',
+              }}
+              returnKeyType="send"
+              onSubmitEditing={() => {
+                if (input.trim()) {
+                  send();
+                }
+              }}
+            />
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 }}>
+              {input.trim().length > 0 && (
+                <Pressable
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    setInput('');
+                  }}
+                  style={({ pressed }) => [
+                    {
+                      width: 28,
+                      height: 28,
+                      borderRadius: 14,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      opacity: pressed ? 0.7 : 1,
+                    },
+                  ]}
+                >
+                  <Feather name="x" size={14} color={colors.inkSubtle} />
+                </Pressable>
+              )}
+
+              <Pressable
+                testID="send-chat-button"
+                onPress={send}
+                disabled={!input.trim() || chatMutation.isPending}
+                style={({ pressed }) => [
+                  {
+                    width: 34,
+                    height: 34,
+                    borderRadius: 17,
+                    backgroundColor: input.trim() && !chatMutation.isPending ? colors.lavenderDeep : colors.border,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    opacity: pressed ? 0.8 : !input.trim() || chatMutation.isPending ? 0.5 : 1,
+                  },
+                ]}
+              >
+                {chatMutation.isPending ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Feather name="arrow-up" size={18} color="#FFFFFF" />
+                )}
+              </Pressable>
+            </View>
+          </View>
         </View>
       </View>
     </KeyboardAvoidingView>
