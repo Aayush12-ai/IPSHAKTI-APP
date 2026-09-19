@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { AppScreen, BrandHeader, LanguagePill, SectionTitle, ToolCard, styles } from '@/components/ip-sakti';
+import { AppScreen, BrandHeader, HeaderActions, LanguagePill, SectionTitle, ToolCard, styles } from '@/components/ip-sakti';
 import { useColors } from '@/hooks/useColors';
 
 const tools = [
@@ -21,7 +21,7 @@ export default function ToolsScreen() {
   const router = useRouter();
   return (
     <AppScreen>
-      <BrandHeader action={<LanguagePill />} />
+      <BrandHeader action={<HeaderActions />} />
       <Text style={[styles.pageTitle, { color: colors.foreground }]}>IP Tools</Text>
       <Text style={[styles.pageSubtitle, { color: colors.inkSubtle }]}>Focused tools for every step from idea to market.</Text>
       <SectionTitle title="Your toolkit" action={`${tools.length} tools`} />

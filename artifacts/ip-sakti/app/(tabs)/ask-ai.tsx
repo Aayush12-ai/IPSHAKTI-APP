@@ -12,6 +12,7 @@ import * as Haptics from 'expo-haptics';
 import {
   AppScreen,
   BrandHeader,
+  HeaderActions,
   LanguagePill,
   QueryComposer,
   StatusBadge,
@@ -430,7 +431,7 @@ export default function AskAIScreen() {
   return (
     <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={0} style={{ flex: 1, backgroundColor: colors.canvas }}>
       <AppScreen>
-        <BrandHeader action={<LanguagePill />} />
+        <BrandHeader action={<HeaderActions />} />
         <Text style={[styles.pageTitle, { color: colors.foreground }]}>Ask IP-SAKTI</Text>
         <Text style={[styles.pageSubtitle, { color: colors.inkSubtle }]}>
           Evidence-grounded Ayurvedic regulatory & patent intelligence.

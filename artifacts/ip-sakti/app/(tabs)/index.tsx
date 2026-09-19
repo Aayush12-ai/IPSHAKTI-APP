@@ -5,6 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import {
   AppScreen,
   BrandHeader,
+  HeaderActions,
   IconCircle,
   LanguagePill,
   QueryComposer,
@@ -87,7 +88,7 @@ export default function HomeScreen() {
 
   return (
     <AppScreen>
-      <BrandHeader action={<LanguagePill />} />
+      <BrandHeader action={<HeaderActions />} />
 
       <Text style={[styles.greeting, { color: colors.inkSubtle }]}>Good morning, Aayush</Text>
       <Text style={[styles.pageTitle, { color: colors.foreground }]}>
@@ -128,7 +129,7 @@ export default function HomeScreen() {
             <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.pink }} />
             <Text style={[styles.heroLabel, { color: '#E9D5FF' }]}>IP-SAKTI COPILOT</Text>
           </View>
-          <Text style={{ color: colors.pink, fontSize: 10, fontWeight: '800' }}>GEMINI POWERED</Text>
+          <Text style={{ color: colors.pink, fontSize: 10, fontWeight: '800' }}>EVIDENCE GROUNDED</Text>
         </View>
 
         <Text style={[styles.heroTitle, { color: '#FFFFFF' }]}>

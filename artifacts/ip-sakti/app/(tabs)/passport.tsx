@@ -5,6 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import {
   AppScreen,
   BrandHeader,
+  HeaderActions,
   LanguagePill,
   PrimaryButton,
   SectionTitle,
@@ -29,7 +30,7 @@ export default function PassportScreen() {
 
   return (
     <AppScreen>
-      <BrandHeader action={<LanguagePill />} />
+      <BrandHeader action={<HeaderActions />} />
       <Text style={[styles.pageTitle, { color: colors.foreground }]}>IP Readiness Passport</Text>
       <Text style={[styles.pageSubtitle, { color: colors.inkSubtle }]}>
         Ashwagandha Calm Formula · Comprehensive IP & Statutory Diagnostic

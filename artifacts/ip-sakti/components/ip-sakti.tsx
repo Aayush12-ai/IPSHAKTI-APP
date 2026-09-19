@@ -97,6 +97,54 @@ export function BrandHeader({ action }: { action?: ReactNode }) {
   );
 }
 
+import { useTheme } from '@/hooks/useColors';
+
+export function ThemeTogglePill() {
+  const colors = useColors();
+  const { theme, toggleTheme } = useTheme();
+
+  const iconName: React.ComponentProps<typeof Feather>['name'] =
+    theme === 'dark' ? 'moon' : theme === 'herbal' ? 'sun' : 'sun';
+
+  const themeLabel =
+    theme === 'dark' ? 'Dark' : theme === 'herbal' ? 'Herbal' : 'Light';
+
+  return (
+    <Pressable
+      onPress={() => {
+        Haptics.selectionAsync();
+        toggleTheme();
+      }}
+      style={({ pressed }) => [
+        styles.languagePill,
+        {
+          backgroundColor: colors.card,
+          borderColor: colors.border,
+          opacity: pressed ? 0.72 : 1,
+        },
+      ]}
+      accessibilityRole="button"
+      accessibilityLabel={`Current theme: ${themeLabel}. Tap to change theme.`}
+    >
+      <Feather
+        name={iconName}
+        size={13}
+        color={theme === 'dark' ? colors.lavender : theme === 'herbal' ? colors.success : colors.pink}
+      />
+      <Text style={[styles.languageText, { color: colors.foreground }]}>{themeLabel}</Text>
+    </Pressable>
+  );
+}
+
+export function HeaderActions() {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+      <ThemeTogglePill />
+      <LanguagePill />
+    </View>
+  );
+}
+
 export function LanguagePill() {
   const colors = useColors();
   return (
@@ -115,7 +163,6 @@ export function LanguagePill() {
     >
       <Ionicons name="language-outline" size={14} color={colors.lavender} />
       <Text style={[styles.languageText, { color: colors.foreground }]}>EN</Text>
-      <Feather name="chevron-down" size={13} color={colors.inkSubtle} />
     </Pressable>
   );
 }

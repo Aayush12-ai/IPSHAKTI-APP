@@ -5,12 +5,15 @@ import { Feather } from '@expo/vector-icons';
 import {
   AppScreen,
   BrandHeader,
+  HeaderActions,
   LanguagePill,
   SectionTitle,
+  StatusBadge,
   SurfaceCard,
   styles,
 } from '@/components/ip-sakti';
-import { useColors } from '@/hooks/useColors';
+import { useColors, useTheme } from '@/hooks/useColors';
+import * as Haptics from 'expo-haptics';
 
 const items = [
   ['user', 'My Profile & Credentials', 'Ayurvedic Practitioner & Innovator'],
@@ -24,11 +27,12 @@ const items = [
 
 export default function ProfileScreen() {
   const colors = useColors();
+  const { theme, setTheme } = useTheme();
   const router = useRouter();
 
   return (
     <AppScreen>
-      <BrandHeader action={<LanguagePill />} />
+      <BrandHeader action={<HeaderActions />} />
       <Text style={[styles.pageTitle, { color: colors.foreground }]}>Innovator Profile</Text>
       <Text style={[styles.pageSubtitle, { color: colors.inkSubtle }]}>
         Your dedicated workspace for responsible Ayurvedic innovation.
@@ -60,6 +64,62 @@ export default function ProfileScreen() {
         </View>
         <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: colors.lavenderLight, alignItems: 'center', justifyContent: 'center' }}>
           <Feather name="edit-2" size={15} color={colors.lavenderDeep} />
+        </View>
+      </SurfaceCard>
+
+      {/* Theme Appearance Selector Card */}
+      <SectionTitle title="App Appearance & Theme" />
+      <SurfaceCard style={{ padding: 14 }}>
+        <Text style={{ color: colors.inkSubtle, fontSize: 11, marginBottom: 10, fontWeight: '600' }}>
+          Select your preferred visual aesthetic:
+        </Text>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          {[
+            { id: 'light', label: 'Lavender White', icon: 'sun', sub: 'Clean & Sharp' },
+            { id: 'dark', label: 'Midnight Obsidian', icon: 'moon', sub: 'Dark OLED' },
+            { id: 'herbal', label: 'Ayurveda Gold', icon: 'feather', sub: 'Classical' },
+          ].map((mode) => {
+            const isSelected = theme === mode.id;
+            return (
+              <Pressable
+                key={mode.id}
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  setTheme(mode.id as never);
+                }}
+                style={({ pressed }) => [
+                  {
+                    flex: 1,
+                    padding: 10,
+                    borderRadius: 12,
+                    borderWidth: isSelected ? 1.5 : 1,
+                    borderColor: isSelected ? colors.lavenderDeep : colors.border,
+                    backgroundColor: isSelected ? colors.lavenderLight : colors.card,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    opacity: pressed ? 0.75 : 1,
+                  },
+                ]}
+              >
+                <Feather
+                  name={mode.icon as never}
+                  size={16}
+                  color={isSelected ? colors.lavenderDeep : colors.inkSubtle}
+                />
+                <Text
+                  style={{
+                    color: isSelected ? colors.lavenderDeep : colors.foreground,
+                    fontSize: 11,
+                    fontWeight: isSelected ? '800' : '600',
+                    marginTop: 4,
+                    textAlign: 'center',
+                  }}
+                >
+                  {mode.label}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
       </SurfaceCard>
 
