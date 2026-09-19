@@ -658,16 +658,23 @@ export default function AskAIScreen() {
             ),
           )}
 
-          {chatMutation.isPending ? (
-            <SurfaceCard style={{ marginBottom: 10, padding: 16, backgroundColor: colors.lavenderLight, borderColor: colors.lavenderBorder }}>
+          {chatMutation.isPending && (
+            <SurfaceCard
+              style={{
+                marginBottom: 14,
+                padding: 14,
+                borderColor: colors.lavenderBorder,
+                backgroundColor: colors.lavenderLight,
+              }}
+            >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <Feather name="loader" size={16} color={colors.lavenderDeep} />
-                <Text style={{ color: colors.lavenderDeep, fontSize: 13, fontWeight: '700' }}>
-                  Consulting Ayurvedic IP & Regulatory Knowledge Base…
+                <Feather name="shield" size={14} color={colors.lavenderDeep} />
+                <Text style={{ color: colors.lavenderDeep, fontSize: 12.5, fontWeight: '700' }}>
+                  IP-SAKTI is evaluating patent literature & statutory databases...
                 </Text>
               </View>
             </SurfaceCard>
-          ) : null}
+          )}
         </View>
 
         <View style={{ height: 16 }} />

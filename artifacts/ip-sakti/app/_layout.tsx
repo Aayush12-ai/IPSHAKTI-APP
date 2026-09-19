@@ -19,14 +19,40 @@ import { setBaseUrl } from '@workspace/api-client-react';
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-const customApiUrl = process.env.EXPO_PUBLIC_API_URL;
-const apiDomain = process.env.EXPO_PUBLIC_DOMAIN;
-const resolvedBaseUrl = customApiUrl
-  ? customApiUrl.replace(/\/+$/, '')
-  : apiDomain
-    ? `https://${apiDomain}`
-    : null;
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
+function resolveApiBaseUrl(): string {
+  const customApiUrl = process.env.EXPO_PUBLIC_API_URL;
+  const apiDomain = process.env.EXPO_PUBLIC_DOMAIN;
+
+  if (apiDomain) {
+    return `https://${apiDomain}`;
+  }
+
+  // When running on physical device in Expo Go, resolve development machine LAN IP
+  if (Platform.OS !== 'web') {
+    const hostUri =
+      Constants.expoConfig?.hostUri ||
+      (Constants as any).manifest?.debuggerHost ||
+      (Constants as any).manifest2?.extra?.expoGo?.debuggerHost;
+
+    if (hostUri) {
+      const hostIp = hostUri.split(':')[0];
+      if (hostIp && hostIp !== 'localhost' && hostIp !== '127.0.0.1') {
+        return `http://${hostIp}:3000`;
+      }
+    }
+  }
+
+  if (customApiUrl) {
+    return customApiUrl.replace(/\/+$/, '');
+  }
+
+  return 'http://localhost:3000';
+}
+
+const resolvedBaseUrl = resolveApiBaseUrl();
 setBaseUrl(resolvedBaseUrl);
 
 const queryClient = new QueryClient();
