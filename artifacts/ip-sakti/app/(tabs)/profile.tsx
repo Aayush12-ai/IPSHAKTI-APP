@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import {
@@ -14,13 +14,43 @@ import {
 } from '@/components/ip-sakti';
 import { useColors, useTheme } from '@/hooks/useColors';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useAuth } from '@/hooks/useAuth';
 import * as Haptics from 'expo-haptics';
 
 export default function ProfileScreen() {
   const colors = useColors();
   const { theme, setTheme } = useTheme();
   const { t, languageInfo, openLanguageModal } = useLanguage();
+  const { user, logout } = useAuth();
   const router = useRouter();
+
+  const handleLogout = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    const performLogout = async () => {
+      await logout();
+      router.replace('/login' as any);
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to sign out of IP-SAKTI?')) {
+        performLogout();
+      }
+    } else {
+      Alert.alert(
+        'Sign Out',
+        'Are you sure you want to sign out of IP-SAKTI?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Sign Out',
+            style: 'destructive',
+            onPress: performLogout,
+          },
+        ],
+        { cancelable: true }
+      );
+    }
+  };
 
   const items = [
     ['user', 'My Profile & Credentials', 'Ayurvedic Practitioner & Innovator'],
@@ -54,18 +84,23 @@ export default function ProfileScreen() {
             borderColor: colors.lavenderBorder,
           }}
         >
-          <Text style={{ color: '#FFFFFF', fontSize: 17, fontWeight: '800' }}>AJ</Text>
+          <Text style={{ color: '#FFFFFF', fontSize: 17, fontWeight: '800' }}>
+            {user?.avatarInitials || 'AJ'}
+          </Text>
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ color: colors.foreground, fontSize: 15.5, fontWeight: '800' }}>
-            Aayush Jaiswal
+            {user?.name || 'Aayush Jaiswal'}
           </Text>
           <Text style={{ color: colors.pink, fontSize: 11, fontWeight: '700', marginTop: 2 }}>
-            Registered Innovator · India AYUSH
+            {user?.role || 'Registered Innovator · India AYUSH'}
+          </Text>
+          <Text style={{ color: colors.inkSubtle, fontSize: 10, marginTop: 1 }}>
+            ID: #{user?.id || '123'} · {user?.email || 'innovator123@ipsakti.gov.in'}
           </Text>
         </View>
         <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: colors.lavenderLight, alignItems: 'center', justifyContent: 'center' }}>
-          <Feather name="edit-2" size={15} color={colors.lavenderDeep} />
+          <Feather name="shield" size={15} color={colors.lavenderDeep} />
         </View>
       </SurfaceCard>
 
@@ -254,7 +289,46 @@ export default function ProfileScreen() {
         </SurfaceCard>
       ))}
 
-      <Text style={{ color: colors.inkSubtle, fontSize: 10, textAlign: 'center', marginTop: 18, marginBottom: 10 }}>
+      {/* Session Management & Logout Button */}
+      <SectionTitle title="Account Session & Security" />
+      <SurfaceCard style={{ padding: 14, marginBottom: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <View>
+            <Text style={{ color: colors.foreground, fontSize: 13, fontWeight: '700' }}>
+              Authenticated Session
+            </Text>
+            <Text style={{ color: colors.inkSubtle, fontSize: 11, marginTop: 2 }}>
+              Logged in as Practitioner ID #{user?.id || '123'}
+            </Text>
+          </View>
+          <StatusBadge label="Active" tone="success" />
+        </View>
+
+        <Pressable
+          onPress={handleLogout}
+          style={({ pressed }) => [
+            {
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              paddingVertical: 12,
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: '#FECDD3',
+              backgroundColor: '#FFF1F2',
+              opacity: pressed ? 0.75 : 1,
+            },
+          ]}
+        >
+          <Feather name="log-out" size={16} color="#E11D48" />
+          <Text style={{ color: '#E11D48', fontSize: 13, fontWeight: '800' }}>
+            Sign Out of IP-SAKTI
+          </Text>
+        </Pressable>
+      </SurfaceCard>
+
+      <Text style={{ color: colors.inkSubtle, fontSize: 10, textAlign: 'center', marginTop: 10, marginBottom: 16 }}>
         IP-SAKTI Sahayak v1.0 · Designed for Evidence-Grounded Innovation
       </Text>
     </AppScreen>

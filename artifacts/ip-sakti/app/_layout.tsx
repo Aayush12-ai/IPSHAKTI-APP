@@ -11,7 +11,7 @@ import {
   Inter_700Bold,
   useFonts,
 } from '@expo-google-fonts/inter';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { setBaseUrl } from '@workspace/api-client-react';
@@ -57,9 +57,32 @@ setBaseUrl(resolvedBaseUrl);
 
 const queryClient = new QueryClient();
 
+import { ThemeProvider } from '@/hooks/useColors';
+import { LanguageProvider } from '@/hooks/useLanguage';
+import { AuthProvider, useAuth } from '@/hooks/useAuth';
+import { LanguageModal } from '@/components/LanguageModal';
+
 function RootLayoutNav() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const firstSegment = segments[0] as string | undefined;
+    const inLogin = firstSegment === 'login';
+
+    if (!isAuthenticated && !inLogin) {
+      router.replace('/login' as any);
+    } else if (isAuthenticated && inLogin) {
+      router.replace('/(tabs)' as any);
+    }
+  }, [isAuthenticated, isLoading, segments]);
+
   return (
     <Stack screenOptions={{ headerBackTitle: 'Back' }}>
+      <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="research" options={{ headerShown: false }} />
       <Stack.Screen name="formula-analyzer" options={{ headerShown: false }} />
@@ -73,9 +96,6 @@ function RootLayoutNav() {
   );
 }
 
-import { ThemeProvider } from '@/hooks/useColors';
-import { LanguageProvider } from '@/hooks/useLanguage';
-import { LanguageModal } from '@/components/LanguageModal';
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -96,20 +116,23 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <LanguageProvider>
-        <SafeAreaProvider>
-          <StatusBar style="auto" />
-          <ErrorBoundary>
-            <QueryClientProvider client={queryClient}>
-              <GestureHandlerRootView>
-                <KeyboardProvider>
-                  <RootLayoutNav />
-                  <LanguageModal />
-                </KeyboardProvider>
-              </GestureHandlerRootView>
-            </QueryClientProvider>
-          </ErrorBoundary>
-        </SafeAreaProvider>
+        <AuthProvider>
+          <SafeAreaProvider>
+            <StatusBar style="auto" />
+            <ErrorBoundary>
+              <QueryClientProvider client={queryClient}>
+                <GestureHandlerRootView>
+                  <KeyboardProvider>
+                    <RootLayoutNav />
+                    <LanguageModal />
+                  </KeyboardProvider>
+                </GestureHandlerRootView>
+              </QueryClientProvider>
+            </ErrorBoundary>
+          </SafeAreaProvider>
+        </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>
   );
 }
+

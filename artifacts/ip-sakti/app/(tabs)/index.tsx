@@ -17,6 +17,7 @@ import {
 } from '@/components/ip-sakti';
 import { useColors } from '@/hooks/useColors';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useAuth } from '@/hooks/useAuth';
 
 const quickActions = [
   {
@@ -76,6 +77,7 @@ const analyses = [
 export default function HomeScreen() {
   const colors = useColors();
   const { t } = useLanguage();
+  const { user } = useAuth();
   const router = useRouter();
   const [query, setQuery] = useState('');
 
@@ -91,11 +93,15 @@ export default function HomeScreen() {
     router.push({ pathname: '/ask-ai', params: { draft: prompt } });
   };
 
+  const firstName = user?.name ? user.name.split(' ')[0] : 'Innovator';
+
   return (
     <AppScreen>
       <BrandHeader action={<HeaderActions />} />
 
-      <Text style={[styles.greeting, { color: colors.inkSubtle }]}>{t('goodMorning', 'Good morning, Aayush')}</Text>
+      <Text style={[styles.greeting, { color: colors.inkSubtle }]}>
+        {t('goodMorning', `Good morning, ${firstName}`)}
+      </Text>
       <Text style={[styles.pageTitle, { color: colors.foreground }]}>
         {t('heroGreeting', 'Make your next move\nwith clarity & confidence.')}
       </Text>
