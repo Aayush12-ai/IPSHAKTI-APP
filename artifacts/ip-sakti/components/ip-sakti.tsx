@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   ScrollView,
   StyleProp,
@@ -16,6 +17,21 @@ import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 
 type IconName = React.ComponentProps<typeof Feather>['name'];
+
+export function BrandLogo({ size = 38 }: { size?: number }) {
+  return (
+    <Image
+      source={require('@/assets/images/ip-sakti-logo.png')}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size > 40 ? 14 : 10,
+        backgroundColor: '#FFFFFF',
+      }}
+      resizeMode="contain"
+    />
+  );
+}
 
 export function AppScreen({
   children,
@@ -55,8 +71,12 @@ export function BrandHeader({ action }: { action?: ReactNode }) {
   return (
     <View style={styles.brandHeader}>
       <View style={styles.brandLockup}>
-        <View style={[styles.brandMark, { backgroundColor: colors.black }]}>
-          <Feather name="shield" size={17} color={colors.pink} />
+        <View style={[styles.brandMark, { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: colors.border, overflow: 'hidden' }]}>
+          <Image
+            source={require('@/assets/images/ip-sakti-logo.png')}
+            style={{ width: 36, height: 36 }}
+            resizeMode="contain"
+          />
         </View>
         <View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -68,7 +88,7 @@ export function BrandHeader({ action }: { action?: ReactNode }) {
             </View>
           </View>
           <Text style={[styles.brandSub, { color: colors.inkSubtle }]}>
-            AYURVEDIC REGULATORY & IP COPILOT
+            TRADITIONAL WISDOM · LEGAL CLARITY
           </Text>
         </View>
       </View>
