@@ -37,6 +37,57 @@ const SUGGESTED_QUESTIONS = [
   'Does our herbal drink qualify under FSSAI Ayurveda Aahar 2022?',
 ];
 
+import { Platform } from 'react-native';
+
+function MarkdownText({
+  text,
+  style,
+  boldColor,
+}: {
+  text: string;
+  style?: any;
+  boldColor?: string;
+}) {
+  const colors = useColors();
+  const effectiveBoldColor = boldColor || colors.foreground;
+
+  // Split by bold (**...**) and inline code (`...`) tokens
+  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+
+  return (
+    <Text style={style}>
+      {parts.map((part, i) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          const inner = part.slice(2, -2);
+          return (
+            <Text key={i} style={{ fontWeight: '800', color: effectiveBoldColor }}>
+              {inner}
+            </Text>
+          );
+        }
+        if (part.startsWith('`') && part.endsWith('`')) {
+          const inner = part.slice(1, -1);
+          return (
+            <Text
+              key={i}
+              style={{
+                fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+                backgroundColor: colors.lavenderLight,
+                color: colors.lavenderDeep,
+                fontWeight: '700',
+                fontSize: (style?.fontSize || 12) * 0.95,
+              }}
+            >
+              {` ${inner} `}
+            </Text>
+          );
+        }
+        return <Text key={i}>{part}</Text>;
+      })}
+    </Text>
+  );
+}
+
 function FormattedSection({
   rawTitle,
   bodyLines,
@@ -102,9 +153,12 @@ function FormattedSection({
           </Text>
         </View>
         {bodyLines.map((line, idx) => (
-          <Text key={idx} style={{ color: colors.foreground, fontSize: 13, lineHeight: 19, fontWeight: '600' }}>
-            {line.trim()}
-          </Text>
+          <MarkdownText
+            key={idx}
+            text={line.trim()}
+            style={{ color: colors.foreground, fontSize: 13, lineHeight: 19, fontWeight: '500' }}
+            boldColor={colors.lavenderDeep}
+          />
         ))}
       </View>
     );
@@ -144,7 +198,7 @@ function FormattedSection({
             const content = bulletMatch ? bulletMatch[1] : trimmed;
             const colonIndex = content.indexOf(':');
 
-            if (colonIndex !== -1 && content.startsWith('**')) {
+            if (colonIndex !== -1 && (content.startsWith('**') || content.includes('**'))) {
               const sourceName = content.slice(0, colonIndex).replace(/\*\*/g, '').trim();
               const citationDetails = content.slice(colonIndex + 1).trim();
               return (
@@ -158,12 +212,13 @@ function FormattedSection({
                     borderColor: colors.border,
                   }}
                 >
-                  <Text style={{ color: colors.lavenderDeep, fontSize: 10, fontWeight: '800' }}>
+                  <Text style={{ color: colors.lavenderDeep, fontSize: 10.5, fontWeight: '800' }}>
                     {sourceName}
                   </Text>
-                  <Text style={{ color: colors.foreground, fontSize: 11, lineHeight: 15, marginTop: 2, fontWeight: '500' }}>
-                    {citationDetails.replace(/\*\*/g, '')}
-                  </Text>
+                  <MarkdownText
+                    text={citationDetails}
+                    style={{ color: colors.foreground, fontSize: 11.5, lineHeight: 16, marginTop: 2, fontWeight: '500' }}
+                  />
                 </View>
               );
             }
@@ -171,9 +226,10 @@ function FormattedSection({
             return (
               <View key={idx} style={{ flexDirection: 'row', gap: 6, alignItems: 'flex-start', paddingLeft: 4 }}>
                 <Feather name="check-circle" size={12} color={colors.lavenderDeep} style={{ marginTop: 2 }} />
-                <Text style={{ color: colors.foreground, fontSize: 11.5, lineHeight: 16, flex: 1 }}>
-                  {content.replace(/\*\*/g, '')}
-                </Text>
+                <MarkdownText
+                  text={content}
+                  style={{ color: colors.foreground, fontSize: 11.5, lineHeight: 16, flex: 1 }}
+                />
               </View>
             );
           })}
@@ -233,9 +289,10 @@ function FormattedSection({
                     {stepMatch[1]}
                   </Text>
                 </View>
-                <Text style={{ color: colors.foreground, fontSize: 12, lineHeight: 18, flex: 1, fontWeight: '500' }}>
-                  {stepMatch[2]}
-                </Text>
+                <MarkdownText
+                  text={stepMatch[2]}
+                  style={{ color: colors.foreground, fontSize: 12, lineHeight: 18, flex: 1, fontWeight: '500' }}
+                />
               </View>
             );
           }
@@ -263,9 +320,10 @@ function FormattedSection({
                   <Text style={{ color: colors.lavenderDeep, fontSize: 10, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' }}>
                     {keyPart}
                   </Text>
-                  <Text style={{ color: colors.foreground, fontSize: 12, lineHeight: 17, marginTop: 2, fontWeight: '500' }}>
-                    {valPart}
-                  </Text>
+                  <MarkdownText
+                    text={valPart}
+                    style={{ color: colors.foreground, fontSize: 12, lineHeight: 17, marginTop: 2, fontWeight: '500' }}
+                  />
                 </View>
               );
             }
@@ -273,18 +331,21 @@ function FormattedSection({
             return (
               <View key={idx} style={{ flexDirection: 'row', gap: 7, alignItems: 'flex-start', paddingLeft: 4 }}>
                 <Text style={{ color: colors.pink, fontSize: 12, lineHeight: 18 }}>•</Text>
-                <Text style={{ color: colors.foreground, fontSize: 12, lineHeight: 18, flex: 1, fontWeight: '500' }}>
-                  {content.replace(/\*\*/g, '')}
-                </Text>
+                <MarkdownText
+                  text={content}
+                  style={{ color: colors.foreground, fontSize: 12, lineHeight: 18, flex: 1, fontWeight: '500' }}
+                />
               </View>
             );
           }
 
           // Regular paragraph
           return (
-            <Text key={idx} style={{ color: colors.foreground, fontSize: 12.5, lineHeight: 18.5 }}>
-              {trimmed.replace(/\*\*/g, '')}
-            </Text>
+            <MarkdownText
+              key={idx}
+              text={trimmed}
+              style={{ color: colors.foreground, fontSize: 12.5, lineHeight: 19, fontWeight: '400' }}
+            />
           );
         })}
       </View>
@@ -406,20 +467,34 @@ export default function AskAIScreen() {
   };
 
   const saveToResearch = async (message: Message) => {
-    if (!clientId || !message.projectId || !message.text || savedMessageIds.includes(message.id)) return;
+    if (!clientId || !message.text || savedMessageIds.includes(message.id)) return;
 
-    await saveMemoryMutation.mutateAsync({
-      projectId: message.projectId,
-      data: {
-        clientId,
-        title: 'Saved AI Guidance',
-        finding: message.text,
-        entities: [],
-        sources: [],
-      },
-    });
+    // Instant optimistic feedback
     setSavedMessageIds((prev) => [...prev, message.id]);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+    try {
+      const effectiveProjectId = message.projectId || activeProjectId || 'default';
+      const cleanTitle =
+        message.text
+          .split('\n')[0]
+          .replace(/^[#*\s-]+/, '')
+          .slice(0, 50)
+          .trim() || 'Saved AI Guidance';
+
+      await saveMemoryMutation.mutateAsync({
+        projectId: effectiveProjectId,
+        data: {
+          clientId,
+          title: cleanTitle,
+          finding: message.text,
+          entities: [],
+          sources: [],
+        },
+      });
+    } catch (err) {
+      console.warn('Memory save background notice:', err);
+    }
   };
 
   const copyMessage = async (message: Message) => {
@@ -431,7 +506,11 @@ export default function AskAIScreen() {
   };
 
   return (
-    <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={0} style={{ flex: 1, backgroundColor: colors.canvas }}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      style={{ flex: 1, backgroundColor: colors.canvas }}
+    >
       <AppScreen>
         <BrandHeader action={<HeaderActions />} />
         <Text style={[styles.pageTitle, { color: colors.foreground }]}>{t('askAiTitle', 'Ask IP-SAKTI')}</Text>
@@ -595,38 +674,36 @@ export default function AskAIScreen() {
                       </Text>
                     </Pressable>
 
-                    {message.projectId ? (
-                      <Pressable
-                        onPress={() => void saveToResearch(message)}
-                        disabled={saveMemoryMutation.isPending || savedMessageIds.includes(message.id)}
-                        style={({ pressed }) => [
-                          {
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            gap: 5,
-                            paddingHorizontal: 8,
-                            paddingVertical: 4,
-                            borderRadius: 8,
-                            opacity: pressed || saveMemoryMutation.isPending ? 0.6 : 1,
-                          },
-                        ]}
+                    <Pressable
+                      onPress={() => void saveToResearch(message)}
+                      disabled={saveMemoryMutation.isPending || savedMessageIds.includes(message.id)}
+                      style={({ pressed }) => [
+                        {
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 5,
+                          paddingHorizontal: 8,
+                          paddingVertical: 4,
+                          borderRadius: 8,
+                          opacity: pressed || saveMemoryMutation.isPending ? 0.6 : 1,
+                        },
+                      ]}
+                    >
+                      <Feather
+                        name={savedMessageIds.includes(message.id) ? 'check-circle' : 'bookmark'}
+                        size={12}
+                        color={savedMessageIds.includes(message.id) ? colors.success : colors.lavenderDeep}
+                      />
+                      <Text
+                        style={{
+                          color: savedMessageIds.includes(message.id) ? colors.success : colors.lavenderDeep,
+                          fontSize: 11,
+                          fontWeight: '700',
+                        }}
                       >
-                        <Feather
-                          name={savedMessageIds.includes(message.id) ? 'check-circle' : 'bookmark'}
-                          size={12}
-                          color={savedMessageIds.includes(message.id) ? colors.success : colors.lavenderDeep}
-                        />
-                        <Text
-                          style={{
-                            color: savedMessageIds.includes(message.id) ? colors.success : colors.lavenderDeep,
-                            fontSize: 11,
-                            fontWeight: '700',
-                          }}
-                        >
-                          {savedMessageIds.includes(message.id) ? t('savedToResearch', 'Saved') : t('saveFinding', 'Save')}
-                        </Text>
-                      </Pressable>
-                    ) : null}
+                        {savedMessageIds.includes(message.id) ? t('savedToResearch', 'Saved') : t('saveFinding', 'Save')}
+                      </Text>
+                    </Pressable>
                   </View>
 
                   <Pressable

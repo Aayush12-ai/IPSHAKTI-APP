@@ -11,6 +11,7 @@ import {
 import {
   createResearchProject,
   findResearchProject,
+  getMostRecentProject,
   getOrCreateResearchUser,
   listResearchProjects,
   saveResearchMemory,
@@ -79,10 +80,16 @@ router.post("/mobile/projects/:projectId/memories", async (req, res) => {
 
   try {
     const user = await getOrCreateResearchUser(parsedBody.data.clientId);
-    const project = await findResearchProject(parsedParams.data.projectId, user.id);
+    let project = await findResearchProject(parsedParams.data.projectId, user.id);
     if (!project) {
-      res.status(404).json({ message: "Research project not found." });
-      return;
+      project = await getMostRecentProject(user.id);
+      if (!project) {
+        project = await createResearchProject(
+          user.id,
+          "My Ayurvedic IP research",
+          "Created from Ask AI Saved Guidance.",
+        );
+      }
     }
 
     const memory = await saveResearchMemory(
