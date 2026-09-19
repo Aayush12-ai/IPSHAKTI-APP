@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { KeyboardAvoidingView, Pressable, Text, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import {
@@ -14,9 +14,14 @@ import {
   styles,
 } from '@/components/ip-sakti';
 import { useColors } from '@/hooks/useColors';
-import { useMobileChat } from '@workspace/api-client-react';
+import { useMobileChat, useMobileMemoryCreate } from '@workspace/api-client-react';
+import {
+  getActiveProjectId,
+  getResearchClientId,
+  setActiveProjectId as setStoredActiveProjectId,
+} from '@/lib/research-client';
 
-type Message = { id: string; role: 'user' | 'assistant'; text?: string };
+type Message = { id: string; role: 'user' | 'assistant'; text?: string; projectId?: string };
 
 function StructuredResponse() {
   const colors = useColors();
@@ -50,23 +55,59 @@ function StructuredResponse() {
 
 export default function AskAIScreen() {
   const colors = useColors();
-  const params = useLocalSearchParams<{ draft?: string }>();
-  const [input, setInput] = useState(params.draft ?? '');
+  const params = useLocalSearchParams<{ draft?: string; projectId?: string }>();
+  const [input, setInput] = useState(typeof params.draft === 'string' ? params.draft : '');
   const [messages, setMessages] = useState<Message[]>([
     { id: 'welcome', role: 'assistant' },
   ]);
+  const [clientId, setClientId] = useState<string | null>(null);
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(
+    typeof params.projectId === 'string' ? params.projectId : null,
+  );
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [savedMessageIds, setSavedMessageIds] = useState<string[]>([]);
   const chatMutation = useMobileChat();
+  const saveMemoryMutation = useMobileMemoryCreate();
+
+  useEffect(() => {
+    void Promise.all([getResearchClientId(), getActiveProjectId()]).then(
+      ([storedClientId, storedProjectId]) => {
+        setClientId(storedClientId);
+        if (!activeProjectId && !params.projectId) {
+          setActiveProjectId(storedProjectId);
+        }
+      },
+    );
+  }, [activeProjectId, params.projectId]);
 
   const send = async () => {
     const trimmed = input.trim();
-    if (!trimmed || chatMutation.isPending) return;
+    if (!trimmed || !clientId || chatMutation.isPending) return;
     const messageId = `${Date.now()}`;
     setMessages((prev) => [...prev, { id: messageId, role: 'user', text: trimmed }]);
     setInput('');
 
     try {
-      const response = await chatMutation.mutateAsync({ data: { question: trimmed } });
-      setMessages((prev) => [...prev, { id: `${messageId}-reply`, role: 'assistant', text: response.answer }]);
+      const response = await chatMutation.mutateAsync({
+        data: {
+          question: trimmed,
+          clientId,
+          ...(activeProjectId ? { projectId: activeProjectId } : {}),
+          ...(sessionId ? { sessionId } : {}),
+        },
+      });
+      setSessionId(response.sessionId);
+      setActiveProjectId(response.projectId);
+      await setStoredActiveProjectId(response.projectId);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `${messageId}-reply`,
+          role: 'assistant',
+          text: response.answer,
+          projectId: response.projectId,
+        },
+      ]);
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -78,6 +119,23 @@ export default function AskAIScreen() {
       ]);
     }
   };
+
+  const saveToResearch = async (message: Message) => {
+    if (!clientId || !message.projectId || !message.text || savedMessageIds.includes(message.id)) return;
+
+    await saveMemoryMutation.mutateAsync({
+      projectId: message.projectId,
+      data: {
+        clientId,
+        title: 'Saved AI finding',
+        finding: message.text,
+        entities: [],
+        sources: [],
+      },
+    });
+    setSavedMessageIds((prev) => [...prev, message.id]);
+  };
+
   return (
     <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={0} style={{ flex: 1, backgroundColor: colors.canvas }}>
       <AppScreen>
@@ -98,6 +156,18 @@ export default function AskAIScreen() {
             ) : (
               <SurfaceCard key={message.id} style={{ marginBottom: 10, padding: 14 }}>
                 <Text style={{ color: colors.foreground, fontSize: 13, lineHeight: 20 }}>{message.text}</Text>
+                {message.projectId ? (
+                  <Pressable
+                    onPress={() => void saveToResearch(message)}
+                    disabled={saveMemoryMutation.isPending || savedMessageIds.includes(message.id)}
+                    style={({ pressed }) => [{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, opacity: pressed || saveMemoryMutation.isPending ? 0.6 : 1 }]}
+                  >
+                    <Feather name={savedMessageIds.includes(message.id) ? 'check' : 'bookmark'} size={14} color={colors.forest} />
+                    <Text style={{ color: colors.forest, fontSize: 11, fontWeight: '700' }}>
+                      {savedMessageIds.includes(message.id) ? 'Saved to research' : 'Save to research'}
+                    </Text>
+                  </Pressable>
+                ) : null}
               </SurfaceCard>
             ),
           )}

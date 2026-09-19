@@ -23,14 +23,125 @@ export const HealthCheckResponse = zod.object({
  */
 export const mobileChatBodyQuestionMax = 4000;
 
+export const mobileChatBodyClientIdMax = 120;
+
 
 
 export const MobileChatBody = zod.object({
-  "question": zod.string().min(1).max(mobileChatBodyQuestionMax)
+  "question": zod.string().min(1).max(mobileChatBodyQuestionMax),
+  "clientId": zod.string().min(1).max(mobileChatBodyClientIdMax),
+  "projectId": zod.string().optional(),
+  "sessionId": zod.string().optional()
 })
 
 export const MobileChatResponse = zod.object({
-  "answer": zod.string()
+  "answer": zod.string(),
+  "projectId": zod.string(),
+  "sessionId": zod.string(),
+  "historyId": zod.string()
+})
+
+
+/**
+ * Lists the mobile user's research projects and recent activity.
+ * @summary List research projects
+ */
+export const mobileProjectsQueryClientIdMax = 120;
+
+
+
+export const MobileProjectsQueryParams = zod.object({
+  "clientId": zod.coerce.string().min(1).max(mobileProjectsQueryClientIdMax)
+})
+
+export const MobileProjectsResponse = zod.object({
+  "projects": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "description": zod.string(),
+  "analysisCount": zod.number(),
+  "sourceCount": zod.number(),
+  "lastActivityAt": zod.coerce.date(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "recentResearch": zod.array(zod.object({
+  "id": zod.string(),
+  "question": zod.string(),
+  "createdAt": zod.coerce.date()
+}))
+}))
+})
+
+
+/**
+ * Creates a research project for the mobile user.
+ * @summary Create a research project
+ */
+export const mobileProjectCreateBodyClientIdMax = 120;
+
+export const mobileProjectCreateBodyNameMax = 160;
+
+export const mobileProjectCreateBodyDescriptionMax = 1000;
+
+
+
+export const MobileProjectCreateBody = zod.object({
+  "clientId": zod.string().min(1).max(mobileProjectCreateBodyClientIdMax),
+  "name": zod.string().min(1).max(mobileProjectCreateBodyNameMax),
+  "description": zod.string().max(mobileProjectCreateBodyDescriptionMax).optional()
+})
+
+export const MobileProjectCreateResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "description": zod.string(),
+  "analysisCount": zod.number(),
+  "sourceCount": zod.number(),
+  "lastActivityAt": zod.coerce.date(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "recentResearch": zod.array(zod.object({
+  "id": zod.string(),
+  "question": zod.string(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * Saves an explainable finding and optional source metadata to a research project.
+ * @summary Save a research finding
+ */
+export const MobileMemoryCreateParams = zod.object({
+  "projectId": zod.coerce.string()
+})
+
+export const mobileMemoryCreateBodyClientIdMax = 120;
+
+export const mobileMemoryCreateBodyTitleMax = 160;
+
+export const mobileMemoryCreateBodyFindingMax = 8000;
+
+
+
+export const MobileMemoryCreateBody = zod.object({
+  "clientId": zod.string().min(1).max(mobileMemoryCreateBodyClientIdMax),
+  "title": zod.string().min(1).max(mobileMemoryCreateBodyTitleMax),
+  "finding": zod.string().min(1).max(mobileMemoryCreateBodyFindingMax),
+  "entities": zod.array(zod.string()).optional(),
+  "sources": zod.array(zod.object({
+  "title": zod.string(),
+  "reference": zod.string(),
+  "url": zod.string().optional()
+})).optional()
+})
+
+export const MobileMemoryCreateResponse = zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "finding": zod.string(),
+  "savedAt": zod.coerce.date(),
+  "sourceCount": zod.number()
 })
 
 

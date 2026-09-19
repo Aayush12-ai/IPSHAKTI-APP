@@ -63,6 +63,94 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /mobile/projects:
+    get:
+      operationId: mobileProjects
+      tags: [mobile]
+      summary: List research projects
+      description: Lists the mobile user's research projects and recent activity.
+      parameters:
+        - name: clientId
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 120
+      responses:
+        "200":
+          description: Research projects
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MobileProjectsResult"
+        "400":
+          description: Invalid client identity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: mobileProjectCreate
+      tags: [mobile]
+      summary: Create a research project
+      description: Creates a research project for the mobile user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MobileProjectCreateRequest"
+      responses:
+        "201":
+          description: Research project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MobileProjectResult"
+        "400":
+          description: Invalid project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /mobile/projects/{projectId}/memories:
+    post:
+      operationId: mobileMemoryCreate
+      tags: [mobile]
+      summary: Save a research finding
+      description: Saves an explainable finding and optional source metadata to a research project.
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MobileMemoryCreateRequest"
+      responses:
+        "201":
+          description: Saved research memory
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MobileMemoryResult"
+        "400":
+          description: Invalid memory
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -79,15 +167,168 @@ components:
           type: string
           minLength: 1
           maxLength: 4000
+        clientId:
+          type: string
+          minLength: 1
+          maxLength: 120
+        projectId:
+          type: string
+        sessionId:
+          type: string
       required:
         - question
+        - clientId
     MobileChatResult:
       type: object
       properties:
         answer:
           type: string
+        projectId:
+          type: string
+        sessionId:
+          type: string
+        historyId:
+          type: string
       required:
         - answer
+        - projectId
+        - sessionId
+        - historyId
+    ResearchSourceMetadata:
+      type: object
+      properties:
+        title:
+          type: string
+        reference:
+          type: string
+        url:
+          type: string
+      required:
+        - title
+        - reference
+    ResearchHistorySummary:
+      type: object
+      properties:
+        id:
+          type: string
+        question:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - question
+        - createdAt
+    MobileProjectResult:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        analysisCount:
+          type: number
+        sourceCount:
+          type: number
+        lastActivityAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        recentResearch:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResearchHistorySummary"
+      required:
+        - id
+        - name
+        - description
+        - analysisCount
+        - sourceCount
+        - lastActivityAt
+        - createdAt
+        - updatedAt
+        - recentResearch
+    MobileProjectsResult:
+      type: object
+      properties:
+        projects:
+          type: array
+          items:
+            $ref: "#/components/schemas/MobileProjectResult"
+      required:
+        - projects
+    MobileProjectCreateRequest:
+      type: object
+      properties:
+        clientId:
+          type: string
+          minLength: 1
+          maxLength: 120
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        description:
+          type: string
+          maxLength: 1000
+      required:
+        - clientId
+        - name
+    MobileMemoryCreateRequest:
+      type: object
+      properties:
+        clientId:
+          type: string
+          minLength: 1
+          maxLength: 120
+        title:
+          type: string
+          minLength: 1
+          maxLength: 160
+        finding:
+          type: string
+          minLength: 1
+          maxLength: 8000
+        entities:
+          type: array
+          items:
+            type: string
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResearchSourceMetadata"
+      required:
+        - clientId
+        - title
+        - finding
+    MobileMemoryResult:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        finding:
+          type: string
+        savedAt:
+          type: string
+          format: date-time
+        sourceCount:
+          type: number
+      required:
+        - id
+        - title
+        - finding
+        - savedAt
+        - sourceCount
     ErrorResponse:
       type: object
       properties:

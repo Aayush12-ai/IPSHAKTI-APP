@@ -60,9 +60,9 @@ export default function HomeScreen() {
         ))}
       </View>
 
-      <SectionTitle title="Recent analysis" action="View history" />
+      <SectionTitle title="Recent analysis" action="My Research" />
       {analyses.map((item) => (
-        <SurfaceCard key={item.title} onPress={() => router.push('/passport')} style={styles.analysisCard}>
+        <SurfaceCard key={item.title} onPress={() => router.push('/research')} style={styles.analysisCard}>
           <View style={[styles.analysisGlyph, { backgroundColor: item.tone === 'success' ? colors.sageLight : colors.saffronLight }]}>
             <Feather name={item.icon} size={19} color={item.tone === 'success' ? colors.forest : colors.warning} />
           </View>

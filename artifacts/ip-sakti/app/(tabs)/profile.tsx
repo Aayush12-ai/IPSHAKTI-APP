@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { AppScreen, BrandHeader, LanguagePill, SectionTitle, SurfaceCard, styles } from '@/components/ip-sakti';
 import { useColors } from '@/hooks/useColors';
@@ -7,6 +8,7 @@ import { useColors } from '@/hooks/useColors';
 const items = [
   ['user', 'My profile', 'Practitioner & innovator'],
   ['globe', 'Preferred language', 'English'],
+  ['briefcase', 'My Research', 'Projects & research history'],
   ['bookmark', 'Saved analyses', '4 saved'],
   ['package', 'My products', '2 products'],
   ['briefcase', 'IP portfolio', '1 active passport'],
@@ -15,6 +17,7 @@ const items = [
 
 export default function ProfileScreen() {
   const colors = useColors();
+  const router = useRouter();
   return (
     <AppScreen>
       <BrandHeader action={<LanguagePill />} />
@@ -28,7 +31,7 @@ export default function ProfileScreen() {
       <SectionTitle title="Workspace" />
       <SurfaceCard style={{ paddingVertical: 3 }}>
         {items.map(([icon, title, subtitle], index) => (
-          <Pressable key={title} style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', paddingVertical: 14, borderBottomWidth: index === items.length - 1 ? 0 : 1, borderBottomColor: colors.border, opacity: pressed ? 0.65 : 1 }]}>
+          <Pressable key={title} onPress={() => title === 'My Research' && router.push('/research')} style={({ pressed }) => [{ flexDirection: 'row', alignItems: 'center', paddingVertical: 14, borderBottomWidth: index === items.length - 1 ? 0 : 1, borderBottomColor: colors.border, opacity: pressed ? 0.65 : 1 }]}>
             <Feather name={icon as never} size={17} color={colors.forest} style={{ width: 31 }} />
             <View style={{ flex: 1 }}><Text style={{ color: colors.foreground, fontSize: 13, fontWeight: '600' }}>{title}</Text><Text style={{ color: colors.inkSubtle, fontSize: 11, marginTop: 2 }}>{subtitle}</Text></View>
             <Feather name="chevron-right" size={16} color={colors.inkSubtle} />

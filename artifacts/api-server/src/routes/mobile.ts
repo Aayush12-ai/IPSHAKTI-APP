@@ -3,6 +3,15 @@ import {
   MobileChatBody,
   MobileChatResponse,
 } from "@workspace/api-zod";
+import {
+  createResearchProject,
+  findResearchProject,
+  getMostRecentProject,
+  getOrCreateResearchSession,
+  getOrCreateResearchUser,
+  getResearchContext,
+  saveResearchHistory,
+} from "../lib/research-store";
 
 const router: IRouter = Router();
 
@@ -34,6 +43,44 @@ router.post("/mobile/chat", async (req, res) => {
   }
 
   try {
+    const user = await getOrCreateResearchUser(parsedRequest.data.clientId);
+    let project = parsedRequest.data.projectId
+      ? await findResearchProject(parsedRequest.data.projectId, user.id)
+      : await getMostRecentProject(user.id);
+
+    if (!project) {
+      project = await createResearchProject(
+        user.id,
+        "My Ayurvedic IP research",
+        "Created from Ask AI. Continue this research from My Research.",
+      );
+    }
+
+    const session = await getOrCreateResearchSession(
+      project.id,
+      parsedRequest.data.sessionId,
+    );
+    const context = await getResearchContext(project.id);
+    const memoryContext = context.memories
+      .map(
+        (memory) =>
+          `- ${memory.title}: ${memory.finding}\n  Entities: ${memory.entities.join(", ")}`,
+      )
+      .join("\n");
+    const historyContext = context.history
+      .map((item) => `- Question: ${item.question}\n  Answer: ${item.answer}`)
+      .join("\n");
+    const enrichedQuestion = [
+      `Active research project: ${project.name}`,
+      project.description ? `Project description: ${project.description}` : "",
+      memoryContext ? `Saved research memory:\n${memoryContext}` : "",
+      historyContext ? `Recent research history:\n${historyContext}` : "",
+      `Current question: ${parsedRequest.data.question.trim()}`,
+    ]
+      .filter(Boolean)
+      .join("\n\n")
+      .slice(0, 24000);
+
     const upstreamResponse = await fetch(
       `${GEMINI_ENDPOINT}/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(apiKey)}`,
       {
@@ -53,7 +100,7 @@ router.post("/mobile/chat", async (req, res) => {
           contents: [
             {
               role: "user",
-              parts: [{ text: parsedRequest.data.question.trim() }],
+              parts: [{ text: enrichedQuestion }],
             },
           ],
           generationConfig: {
@@ -98,7 +145,18 @@ router.post("/mobile/chat", async (req, res) => {
       return;
     }
 
-    const response = MobileChatResponse.parse({ answer });
+    const history = await saveResearchHistory(
+      project.id,
+      session.id,
+      parsedRequest.data.question.trim(),
+      answer,
+    );
+    const response = MobileChatResponse.parse({
+      answer,
+      projectId: project.id,
+      sessionId: session.id,
+      historyId: history.id,
+    });
     res.json(response);
   } catch (error) {
     req.log.error({ err: error }, "Unexpected Gemini request error");

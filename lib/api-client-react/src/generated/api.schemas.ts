@@ -15,13 +15,102 @@ export interface MobileChatRequest {
      * @maxLength 4000
      */
   question: string;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  clientId: string;
+  projectId?: string;
+  sessionId?: string;
 }
 
 export interface MobileChatResult {
   answer: string;
+  projectId: string;
+  sessionId: string;
+  historyId: string;
+}
+
+export interface ResearchSourceMetadata {
+  title: string;
+  reference: string;
+  url?: string;
+}
+
+export interface ResearchHistorySummary {
+  id: string;
+  question: string;
+  createdAt: string;
+}
+
+export interface MobileProjectResult {
+  id: string;
+  name: string;
+  description: string;
+  analysisCount: number;
+  sourceCount: number;
+  lastActivityAt: string;
+  createdAt: string;
+  updatedAt: string;
+  recentResearch: ResearchHistorySummary[];
+}
+
+export interface MobileProjectsResult {
+  projects: MobileProjectResult[];
+}
+
+export interface MobileProjectCreateRequest {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  clientId: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  name: string;
+  /** @maxLength 1000 */
+  description?: string;
+}
+
+export interface MobileMemoryCreateRequest {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  clientId: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  title: string;
+  /**
+     * @minLength 1
+     * @maxLength 8000
+     */
+  finding: string;
+  entities?: string[];
+  sources?: ResearchSourceMetadata[];
+}
+
+export interface MobileMemoryResult {
+  id: string;
+  title: string;
+  finding: string;
+  savedAt: string;
+  sourceCount: number;
 }
 
 export interface ErrorResponse {
   message: string;
 }
+
+export type MobileProjectsParams = {
+/**
+ * @minLength 1
+ * @maxLength 120
+ */
+clientId: string;
+};
 

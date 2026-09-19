@@ -1,0 +1,101 @@
+Now implement a lightweight adaptive research memory system for the existing IP-SAKTI Expo application.
+
+IMPORTANT:
+- Do NOT implement model fine-tuning.
+- Do NOT retrain Gemini.
+- Do NOT rebuild the existing RAG system.
+- Do NOT break the existing Gemini integration.
+- Inspect the existing backend/database architecture first.
+- Reuse existing user/session/project/history structures if they already exist.
+
+GOAL:
+
+IP-SAKTI should remember the context of a user's research project across conversations.
+
+Create the concept of:
+
+User
+→ Research Project
+→ Research Sessions
+→ Research History
+→ Research Memory
+
+Example:
+
+Project:
+"Ashwagandha Sustained Release Formulation"
+
+Previous research:
+- Patentability
+- Prior art
+- Ayurveda ingredients
+- ABS/TK
+- Relevant patent documents
+
+If the user later asks:
+
+"Now check FTO"
+
+IP-SAKTI should understand that "this" refers to the active research project.
+
+Implement:
+
+1. Research Project
+   - project_id
+   - project_name
+   - description
+   - created_at
+   - updated_at
+
+2. Research Memory
+   Store useful structured context such as:
+   - entities
+   - patent numbers
+   - botanical names
+   - legal regimes
+   - previous questions
+   - previous analyses
+   - relevant sources
+   - user-selected project context
+
+3. Context enrichment
+
+Before sending a new query to the existing IP-SAKTI pipeline:
+
+User Query
+→ Active Project
+→ Relevant Research Memory
+→ Query Context
+→ Existing IP-SAKTI pipeline
+→ Gemini
+
+4. Add a "My Research" screen.
+
+Display:
+- active projects
+- recent research
+- number of analyses
+- sources collected
+- last activity
+
+5. Add:
+"Continue Research"
+
+When selected, restore the project context.
+
+6. Keep the memory structured and explainable.
+Do not store every piece of conversation blindly.
+
+7. Add a simple mechanism to save important findings to the active project.
+
+Example:
+
+"Save to Research"
+
+The system should store the finding and associated source/evidence metadata.
+
+First inspect the existing project and determine the best database/storage mechanism already available.
+
+Do not introduce another database unless necessary.
+
+Implement the feature without breaking existing functionality.

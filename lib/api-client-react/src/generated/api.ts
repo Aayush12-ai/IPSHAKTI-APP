@@ -23,7 +23,13 @@ import type {
   ErrorResponse,
   HealthStatus,
   MobileChatRequest,
-  MobileChatResult
+  MobileChatResult,
+  MobileMemoryCreateRequest,
+  MobileMemoryResult,
+  MobileProjectCreateRequest,
+  MobileProjectResult,
+  MobileProjectsParams,
+  MobileProjectsResult
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -201,5 +207,235 @@ export const useMobileChat = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getMobileChatMutationOptions(options));
+    }
+
+export const getMobileProjectsUrl = (params: MobileProjectsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/mobile/projects?${stringifiedParams}` : `/api/mobile/projects`
+}
+
+/**
+ * Lists the mobile user's research projects and recent activity.
+ * @summary List research projects
+ */
+export const mobileProjects = async (params: MobileProjectsParams, options?: Parameters<typeof customFetch>[1]): Promise<MobileProjectsResult> => {
+
+  return customFetch<MobileProjectsResult>(getMobileProjectsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getMobileProjectsQueryKey = (params?: MobileProjectsParams,) => {
+    return [
+    `/api/mobile/projects`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getMobileProjectsQueryOptions = <TData = Awaited<ReturnType<typeof mobileProjects>>, TError = ErrorType<ErrorResponse>>(params: MobileProjectsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof mobileProjects>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getMobileProjectsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof mobileProjects>>> = ({ signal }) => mobileProjects(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof mobileProjects>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type MobileProjectsQueryResult = NonNullable<Awaited<ReturnType<typeof mobileProjects>>>
+export type MobileProjectsQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary List research projects
+ */
+
+export function useMobileProjects<TData = Awaited<ReturnType<typeof mobileProjects>>, TError = ErrorType<ErrorResponse>>(
+ params: MobileProjectsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof mobileProjects>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getMobileProjectsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getMobileProjectCreateUrl = () => {
+
+
+
+
+  return `/api/mobile/projects`
+}
+
+/**
+ * Creates a research project for the mobile user.
+ * @summary Create a research project
+ */
+export const mobileProjectCreate = async (mobileProjectCreateRequest: MobileProjectCreateRequest, options?: Parameters<typeof customFetch>[1]): Promise<MobileProjectResult> => {
+
+  return customFetch<MobileProjectResult>(getMobileProjectCreateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(mobileProjectCreateRequest)
+  }
+);}
+
+
+
+
+
+export const getMobileProjectCreateMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mobileProjectCreate>>, TError,{data: BodyType<MobileProjectCreateRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof mobileProjectCreate>>, TError,{data: BodyType<MobileProjectCreateRequest>}, TContext> => {
+
+const mutationKey = ['mobileProjectCreate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mobileProjectCreate>>, {data: BodyType<MobileProjectCreateRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  mobileProjectCreate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MobileProjectCreateMutationResult = NonNullable<Awaited<ReturnType<typeof mobileProjectCreate>>>
+    export type MobileProjectCreateMutationBody = BodyType<MobileProjectCreateRequest>
+    export type MobileProjectCreateMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Create a research project
+ */
+export const useMobileProjectCreate = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mobileProjectCreate>>, TError,{data: BodyType<MobileProjectCreateRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof mobileProjectCreate>>,
+        TError,
+        {data: BodyType<MobileProjectCreateRequest>},
+        TContext
+      > => {
+      return useMutation(getMobileProjectCreateMutationOptions(options));
+    }
+
+export const getMobileMemoryCreateUrl = (projectId: string,) => {
+
+
+
+
+  return `/api/mobile/projects/${projectId}/memories`
+}
+
+/**
+ * Saves an explainable finding and optional source metadata to a research project.
+ * @summary Save a research finding
+ */
+export const mobileMemoryCreate = async (projectId: string,
+    mobileMemoryCreateRequest: MobileMemoryCreateRequest, options?: Parameters<typeof customFetch>[1]): Promise<MobileMemoryResult> => {
+
+  return customFetch<MobileMemoryResult>(getMobileMemoryCreateUrl(projectId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(mobileMemoryCreateRequest)
+  }
+);}
+
+
+
+
+
+export const getMobileMemoryCreateMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mobileMemoryCreate>>, TError,{projectId: string;data: BodyType<MobileMemoryCreateRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof mobileMemoryCreate>>, TError,{projectId: string;data: BodyType<MobileMemoryCreateRequest>}, TContext> => {
+
+const mutationKey = ['mobileMemoryCreate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mobileMemoryCreate>>, {projectId: string;data: BodyType<MobileMemoryCreateRequest>}> = (props) => {
+          const {projectId,data} = props ?? {};
+
+          return  mobileMemoryCreate(projectId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MobileMemoryCreateMutationResult = NonNullable<Awaited<ReturnType<typeof mobileMemoryCreate>>>
+    export type MobileMemoryCreateMutationBody = BodyType<MobileMemoryCreateRequest>
+    export type MobileMemoryCreateMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Save a research finding
+ */
+export const useMobileMemoryCreate = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mobileMemoryCreate>>, TError,{projectId: string;data: BodyType<MobileMemoryCreateRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof mobileMemoryCreate>>,
+        TError,
+        {projectId: string;data: BodyType<MobileMemoryCreateRequest>},
+        TContext
+      > => {
+      return useMutation(getMobileMemoryCreateMutationOptions(options));
     }
 

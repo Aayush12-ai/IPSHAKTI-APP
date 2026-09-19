@@ -1,2 +1,3 @@
 - [Expo preview tooling](expo-preview-tooling.md) — React Native DevTools may warn about missing libglib in this environment while Metro and Expo preview continue to work.
 - [Gemini model availability](gemini-model-availability.md) — Gemini model access can vary by API key; keep the model configurable and handle provider 404s safely.
+- [OpenAPI numeric schemas](openapi-numeric-schemas.md) — this workspace's Zod 3 codegen path cannot consume Orval's `zod.int()` output; use compatible numeric schemas unless upgrading deliberately.

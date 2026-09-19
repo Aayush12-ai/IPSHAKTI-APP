@@ -6,9 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface MobileChatResult {
-  answer: string;
-  projectId: string;
-  sessionId: string;
-  historyId: string;
+export interface ResearchSourceMetadata {
+  title: string;
+  reference: string;
+  url?: string;
 }

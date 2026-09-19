@@ -6,9 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface MobileChatResult {
-  answer: string;
-  projectId: string;
-  sessionId: string;
-  historyId: string;
-}
+export type MobileProjectsParams = {
+/**
+ * @minLength 1
+ * @maxLength 120
+ */
+clientId: string;
+};

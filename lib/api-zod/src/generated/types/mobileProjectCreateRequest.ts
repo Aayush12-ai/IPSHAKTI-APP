@@ -6,17 +6,17 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface MobileChatRequest {
-  /**
-     * @minLength 1
-     * @maxLength 4000
-     */
-  question: string;
+export interface MobileProjectCreateRequest {
   /**
      * @minLength 1
      * @maxLength 120
      */
   clientId: string;
-  projectId?: string;
-  sessionId?: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  name: string;
+  /** @maxLength 1000 */
+  description?: string;
 }
