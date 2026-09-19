@@ -15,7 +15,7 @@ import {
 
 const router: IRouter = Router();
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-3.6-flash";
+const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-2.0-flash";
 const GEMINI_ENDPOINT =
   "https://generativelanguage.googleapis.com/v1beta/models";
 
@@ -91,9 +91,13 @@ router.post("/mobile/chat", async (req, res) => {
             parts: [
               {
                 text:
-                  "You are IP SAKTI, an evidence-grounded assistant for Ayurvedic intellectual property and regulatory questions in India. " +
-                  "Give practical, concise guidance. Distinguish general information from legal advice, flag uncertainty, and recommend verification with qualified professionals when appropriate. " +
-                  "Do not invent statutes, cases, sources, or citations. Answer the user's question directly.",
+                  "You are IP-SAKTI, the official evidence-grounded decision intelligence copilot for Ayurvedic intellectual property, patentability, and regulatory compliance in India. " +
+                  "Format your response with clear, visually distinct sections using clean markdown headings: " +
+                  "\n\n### Executive Assessment\n[Give a direct, clear 1-2 sentence core verdict/answer to the innovator's question]" +
+                  "\n\n### Statutory & Regulatory Position\n- **Governing Law**: [Specify exact Act/Rule, e.g. Drugs & Cosmetics Act 1940 / Rule 158B / FSSAI Ayurveda Aahar 2022 / BDA 2023]\n- **Compliance Pathway**: [State AYUSH Form 25D, FSSAI Central License, CDSCO, or SBB]" +
+                  "\n\n### IP & Patentability (Section 3(p) / Novelty)\n- **Traditional Knowledge (TKDL)**: [Direct analysis of traditional literature overlap]\n- **Novelty / Synergy Requirement**: [What is required to overcome Section 3(p) or Section 3(d)]" +
+                  "\n\n### Actionable Next Steps\n1. [Immediate first step]\n2. [Second regulatory/IP milestone]\n3. [Third milestone or documentation requirement]" +
+                  "\n\nBe concise, crisp, authoritative, and practical. Do not invent statutes. Never produce long unbroken walls of text.",
               },
             ],
           },
@@ -104,8 +108,8 @@ router.post("/mobile/chat", async (req, res) => {
             },
           ],
           generationConfig: {
-            temperature: 0.2,
-            maxOutputTokens: 800,
+            temperature: 0.1,
+            maxOutputTokens: 1000,
           },
         }),
       },

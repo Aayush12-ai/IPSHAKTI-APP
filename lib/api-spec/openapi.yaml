@@ -182,6 +182,68 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /mobile/classify:
+    post:
+      operationId: mobileClassify
+      tags: [mobile]
+      summary: Classify an Ayurvedic product
+      description: Evaluates an Ayurvedic formulation, method, and claims under Indian and international regulatory frameworks.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MobileClassifyRequest"
+      responses:
+        "200":
+          description: Product classification result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MobileClassifyResult"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Classification provider failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /mobile/abs-check:
+    post:
+      operationId: mobileAbsCheck
+      tags: [mobile]
+      summary: Check Access and Benefit Sharing (ABS) obligations
+      description: Assesses biodiversity compliance and ABS obligations under the Biological Diversity Act 2002 and 2023 Amendments.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MobileAbsCheckRequest"
+      responses:
+        "200":
+          description: ABS assessment result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MobileAbsCheckResult"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: ABS analysis provider failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -473,4 +535,198 @@ components:
           type: string
       required:
         - message
+    MobileClassifyRequest:
+      type: object
+      properties:
+        productName:
+          type: string
+          minLength: 1
+          maxLength: 300
+        ingredients:
+          type: string
+          minLength: 1
+          maxLength: 3000
+        dosageForm:
+          type: string
+        preparationMethod:
+          type: string
+        intendedUse:
+          type: string
+        claims:
+          type: string
+        targetMarket:
+          type: string
+        clientId:
+          type: string
+        projectId:
+          type: string
+      required:
+        - productName
+        - ingredients
+    MobileClassifyResult:
+      type: object
+      properties:
+        category:
+          type: string
+        categoryCode:
+          type: string
+        confidence:
+          type: string
+        confidenceScore:
+          type: number
+        summary:
+          type: string
+        statutoryBasis:
+          type: string
+        regulatoryPathway:
+          type: object
+          properties:
+            authority:
+              type: string
+            licenseType:
+              type: string
+            trialRequirements:
+              type: array
+              items:
+                type: string
+            standardsRef:
+              type: string
+          required:
+            - authority
+            - licenseType
+            - trialRequirements
+            - standardsRef
+        ipAndTkdlRisks:
+          type: object
+          properties:
+            patentability:
+              type: string
+            tkdlOverlap:
+              type: string
+            keyRisks:
+              type: array
+              items:
+                type: string
+          required:
+            - patentability
+            - tkdlOverlap
+            - keyRisks
+        recommendedActions:
+          type: array
+          items:
+            type: string
+        evidenceSources:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              section:
+                type: string
+              description:
+                type: string
+            required:
+              - title
+              - section
+              - description
+      required:
+        - category
+        - categoryCode
+        - confidence
+        - confidenceScore
+        - summary
+        - statutoryBasis
+        - regulatoryPathway
+        - ipAndTkdlRisks
+        - recommendedActions
+        - evidenceSources
+    MobileAbsCheckRequest:
+      type: object
+      properties:
+        entityType:
+          type: string
+        bioResources:
+          type: string
+          minLength: 1
+          maxLength: 3000
+        sourcingType:
+          type: string
+        activityType:
+          type: string
+        jurisdiction:
+          type: string
+        clientId:
+          type: string
+        projectId:
+          type: string
+      required:
+        - entityType
+        - bioResources
+        - sourcingType
+        - activityType
+    MobileAbsCheckResult:
+      type: object
+      properties:
+        absStatus:
+          type: string
+        statusTitle:
+          type: string
+        confidence:
+          type: string
+        summary:
+          type: string
+        statutorySections:
+          type: array
+          items:
+            type: string
+        benefitSharingEstimate:
+          type: string
+        approvalForms:
+          type: array
+          items:
+            type: string
+        keyObligations:
+          type: array
+          items:
+            type: string
+        exemptionsApplicable:
+          type: array
+          items:
+            type: string
+        patentClearanceAdvice:
+          type: string
+        stepByStepRoadmap:
+          type: array
+          items:
+            type: string
+        evidenceSources:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              section:
+                type: string
+              description:
+                type: string
+            required:
+              - title
+              - section
+              - description
+      required:
+        - absStatus
+        - statusTitle
+        - confidence
+        - summary
+        - statutorySections
+        - benefitSharingEstimate
+        - approvalForms
+        - keyObligations
+        - exemptionsApplicable
+        - patentClearanceAdvice
+        - stepByStepRoadmap
+        - evidenceSources
+
 

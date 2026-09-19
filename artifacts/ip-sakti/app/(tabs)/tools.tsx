@@ -9,7 +9,7 @@ const tools = [
   { icon: 'award' as const, title: 'Patentability Check', description: 'Assess novelty, inventive step and exclusions.', route: '/classify' as const },
   { icon: 'search' as const, title: 'Prior-Art Radar', description: 'Find patents and classical knowledge overlap.', route: '/radar' as const },
   { icon: 'layers' as const, title: 'Product Classification', description: 'Identify the likely regulatory pathway.', route: '/classify' as const },
-  { icon: 'globe' as const, title: 'ABS Checker', description: 'Review biodiversity and benefit-sharing duties.', route: '/jurisdiction' as const },
+  { icon: 'globe' as const, title: 'ABS Checker', description: 'Review biodiversity and benefit-sharing duties.', route: '/abs' as const },
   { icon: 'map' as const, title: 'Jurisdiction Compare', description: 'Compare requirements across target markets.', route: '/jurisdiction' as const },
   { icon: 'sliders' as const, title: 'What-If Simulator', description: 'See how a product change affects your path.', route: '/simulator' as const },
   { icon: 'briefcase' as const, title: 'IP Portfolio', description: 'Keep your products and analyses together.', route: '/passport' as const },

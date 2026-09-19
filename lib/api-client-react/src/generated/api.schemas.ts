@@ -184,6 +184,93 @@ export interface ErrorResponse {
   message: string;
 }
 
+export interface MobileClassifyRequest {
+  /**
+     * @minLength 1
+     * @maxLength 300
+     */
+  productName: string;
+  /**
+     * @minLength 1
+     * @maxLength 3000
+     */
+  ingredients: string;
+  dosageForm?: string;
+  preparationMethod?: string;
+  intendedUse?: string;
+  claims?: string;
+  targetMarket?: string;
+  clientId?: string;
+  projectId?: string;
+}
+
+export type MobileClassifyResultRegulatoryPathway = {
+  authority: string;
+  licenseType: string;
+  trialRequirements: string[];
+  standardsRef: string;
+};
+
+export type MobileClassifyResultIpAndTkdlRisks = {
+  patentability: string;
+  tkdlOverlap: string;
+  keyRisks: string[];
+};
+
+export type MobileClassifyResultEvidenceSourcesItem = {
+  title: string;
+  section: string;
+  description: string;
+};
+
+export interface MobileClassifyResult {
+  category: string;
+  categoryCode: string;
+  confidence: string;
+  confidenceScore: number;
+  summary: string;
+  statutoryBasis: string;
+  regulatoryPathway: MobileClassifyResultRegulatoryPathway;
+  ipAndTkdlRisks: MobileClassifyResultIpAndTkdlRisks;
+  recommendedActions: string[];
+  evidenceSources: MobileClassifyResultEvidenceSourcesItem[];
+}
+
+export interface MobileAbsCheckRequest {
+  entityType: string;
+  /**
+     * @minLength 1
+     * @maxLength 3000
+     */
+  bioResources: string;
+  sourcingType: string;
+  activityType: string;
+  jurisdiction?: string;
+  clientId?: string;
+  projectId?: string;
+}
+
+export type MobileAbsCheckResultEvidenceSourcesItem = {
+  title: string;
+  section: string;
+  description: string;
+};
+
+export interface MobileAbsCheckResult {
+  absStatus: string;
+  statusTitle: string;
+  confidence: string;
+  summary: string;
+  statutorySections: string[];
+  benefitSharingEstimate: string;
+  approvalForms: string[];
+  keyObligations: string[];
+  exemptionsApplicable: string[];
+  patentClearanceAdvice: string;
+  stepByStepRoadmap: string[];
+  evidenceSources: MobileAbsCheckResultEvidenceSourcesItem[];
+}
+
 export type MobileProjectsParams = {
 /**
  * @minLength 1

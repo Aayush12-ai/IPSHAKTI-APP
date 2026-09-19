@@ -1,48 +1,64 @@
 /**
- * Semantic design tokens for the mobile app.
+ * Semantic design tokens for IP-SAKTI.
  *
- * These tokens mirror the naming conventions used in web artifacts (index.css)
- * so that multi-artifact projects share a cohesive visual identity.
- *
- * Replace the placeholder values below with values that match the project's
- * brand. If a sibling web artifact exists, read its index.css and convert the
- * HSL values to hex so both artifacts use the same palette.
- *
- * To add dark mode, add a `dark` key with the same token names.
- * The useColors() hook will automatically pick it up.
+ * Theme: Lavender-Pinkish, Sharp Obsidian Black, and Pure White.
+ * A human-crafted, ultra-sharp, high-contrast, premium aesthetic.
  */
 
 const colors = {
   light: {
-    text: '#1F2924',
-    tint: '#176B4D',
-    background: '#F8F8F4',
-    foreground: '#1F2924',
+    // Core Base
+    background: '#FAF8FC',
+    canvas: '#FAF8FC',
+    foreground: '#0F1016',
+    text: '#0F1016',
     card: '#FFFFFF',
-    cardForeground: '#1F2924',
-    primary: '#176B4D',
+    cardForeground: '#0F1016',
+    surfaceMuted: '#F4EEF8',
+    muted: '#F4EEF8',
+    mutedForeground: '#645E73',
+    inkSubtle: '#645E73',
+    border: '#E5DEEC',
+    input: '#E5DEEC',
+
+    // Primary & Noir
+    primary: '#7B2CBF',
     primaryForeground: '#FFFFFF',
-    secondary: '#E9F0EA',
-    secondaryForeground: '#176B4D',
-    muted: '#EEF1EC',
-    mutedForeground: '#68756D',
-    accent: '#D89B3D',
+    secondary: '#F2EDFC',
+    secondaryForeground: '#7B2CBF',
+    black: '#0F1016',
+    white: '#FFFFFF',
+
+    // Lavender Palette
+    lavender: '#8B5CF6',
+    lavenderDeep: '#5B21B6',
+    lavenderLight: '#F2EDFC',
+    lavenderBorder: '#DDD0FA',
+    tint: '#7B2CBF',
+
+    // Pinkish / Rosé Palette
+    pink: '#E63973',
+    pinkDeep: '#BE123C',
+    pinkLight: '#FDF2F4',
+    pinkBorder: '#FBCFE8',
+    accent: '#E63973',
     accentForeground: '#FFFFFF',
-    destructive: '#B94A45',
+
+    // Backward-compatible Brand Aliases mapped to theme
+    forest: '#7B2CBF',
+    forestDeep: '#0F1016',
+    sage: '#9D4EDD',
+    sageLight: '#F2EDFC',
+    saffron: '#E63973',
+    saffronLight: '#FDF2F4',
+
+    // Status Semantics
+    success: '#059669',
+    successLight: '#ECFDF5',
+    warning: '#D97706',
+    warningLight: '#FFFBEB',
+    destructive: '#E11D48',
     destructiveForeground: '#FFFFFF',
-    border: '#DCE4DE',
-    input: '#DCE4DE',
-    forest: '#176B4D',
-    forestDeep: '#0E4A35',
-    sage: '#6F9278',
-    sageLight: '#E9F0EA',
-    saffron: '#D89B3D',
-    saffronLight: '#FBF1DE',
-    canvas: '#F8F8F4',
-    surfaceMuted: '#F2F5F0',
-    inkSubtle: '#68756D',
-    success: '#2C7A58',
-    warning: '#B7791F',
   },
   radius: 16,
 };

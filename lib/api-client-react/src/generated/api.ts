@@ -22,8 +22,12 @@ import type {
 import type {
   ErrorResponse,
   HealthStatus,
+  MobileAbsCheckRequest,
+  MobileAbsCheckResult,
   MobileChatRequest,
   MobileChatResult,
+  MobileClassifyRequest,
+  MobileClassifyResult,
   MobileFormulaAnalysisRequest,
   MobileFormulaAnalysisResult,
   MobileMemoryCreateRequest,
@@ -511,5 +515,149 @@ export const useMobileMemoryCreate = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getMobileMemoryCreateMutationOptions(options));
+    }
+
+export const getMobileClassifyUrl = () => {
+
+
+
+
+  return `/api/mobile/classify`
+}
+
+/**
+ * Evaluates an Ayurvedic formulation, method, and claims under Indian and international regulatory frameworks.
+ * @summary Classify an Ayurvedic product
+ */
+export const mobileClassify = async (mobileClassifyRequest: MobileClassifyRequest, options?: Parameters<typeof customFetch>[1]): Promise<MobileClassifyResult> => {
+
+  return customFetch<MobileClassifyResult>(getMobileClassifyUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(mobileClassifyRequest)
+  }
+);}
+
+
+
+
+
+export const getMobileClassifyMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mobileClassify>>, TError,{data: BodyType<MobileClassifyRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof mobileClassify>>, TError,{data: BodyType<MobileClassifyRequest>}, TContext> => {
+
+const mutationKey = ['mobileClassify'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mobileClassify>>, {data: BodyType<MobileClassifyRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  mobileClassify(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MobileClassifyMutationResult = NonNullable<Awaited<ReturnType<typeof mobileClassify>>>
+    export type MobileClassifyMutationBody = BodyType<MobileClassifyRequest>
+    export type MobileClassifyMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Classify an Ayurvedic product
+ */
+export const useMobileClassify = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mobileClassify>>, TError,{data: BodyType<MobileClassifyRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof mobileClassify>>,
+        TError,
+        {data: BodyType<MobileClassifyRequest>},
+        TContext
+      > => {
+      return useMutation(getMobileClassifyMutationOptions(options));
+    }
+
+export const getMobileAbsCheckUrl = () => {
+
+
+
+
+  return `/api/mobile/abs-check`
+}
+
+/**
+ * Assesses biodiversity compliance and ABS obligations under the Biological Diversity Act 2002 and 2023 Amendments.
+ * @summary Check Access and Benefit Sharing (ABS) obligations
+ */
+export const mobileAbsCheck = async (mobileAbsCheckRequest: MobileAbsCheckRequest, options?: Parameters<typeof customFetch>[1]): Promise<MobileAbsCheckResult> => {
+
+  return customFetch<MobileAbsCheckResult>(getMobileAbsCheckUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(mobileAbsCheckRequest)
+  }
+);}
+
+
+
+
+
+export const getMobileAbsCheckMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mobileAbsCheck>>, TError,{data: BodyType<MobileAbsCheckRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof mobileAbsCheck>>, TError,{data: BodyType<MobileAbsCheckRequest>}, TContext> => {
+
+const mutationKey = ['mobileAbsCheck'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mobileAbsCheck>>, {data: BodyType<MobileAbsCheckRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  mobileAbsCheck(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MobileAbsCheckMutationResult = NonNullable<Awaited<ReturnType<typeof mobileAbsCheck>>>
+    export type MobileAbsCheckMutationBody = BodyType<MobileAbsCheckRequest>
+    export type MobileAbsCheckMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Check Access and Benefit Sharing (ABS) obligations
+ */
+export const useMobileAbsCheck = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mobileAbsCheck>>, TError,{data: BodyType<MobileAbsCheckRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof mobileAbsCheck>>,
+        TError,
+        {data: BodyType<MobileAbsCheckRequest>},
+        TContext
+      > => {
+      return useMutation(getMobileAbsCheckMutationOptions(options));
     }
 

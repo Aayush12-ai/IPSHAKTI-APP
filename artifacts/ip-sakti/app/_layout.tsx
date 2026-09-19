@@ -19,8 +19,15 @@ import { setBaseUrl } from '@workspace/api-client-react';
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
+const customApiUrl = process.env.EXPO_PUBLIC_API_URL;
 const apiDomain = process.env.EXPO_PUBLIC_DOMAIN;
-setBaseUrl(apiDomain ? `https://${apiDomain}` : null);
+const resolvedBaseUrl = customApiUrl
+  ? customApiUrl.replace(/\/+$/, '')
+  : apiDomain
+    ? `https://${apiDomain}`
+    : null;
+
+setBaseUrl(resolvedBaseUrl);
 
 const queryClient = new QueryClient();
 
@@ -28,8 +35,14 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerBackTitle: 'Back' }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="research" options={{ headerShown: false }} />
+      <Stack.Screen name="research" options={{ headerShown: false }} />
       <Stack.Screen name="formula-analyzer" options={{ headerShown: false }} />
+      <Stack.Screen name="classify" options={{ headerShown: false }} />
+      <Stack.Screen name="abs" options={{ headerShown: false }} />
+      <Stack.Screen name="jurisdiction" options={{ headerShown: false }} />
+      <Stack.Screen name="radar" options={{ headerShown: false }} />
+      <Stack.Screen name="simulator" options={{ headerShown: false }} />
+      <Stack.Screen name="evidence" options={{ headerShown: false }} />
     </Stack>
   );
 }

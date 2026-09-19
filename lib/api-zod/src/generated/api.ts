@@ -224,3 +224,90 @@ export const MobileMemoryCreateResponse = zod.object({
 })
 
 
+/**
+ * Evaluates an Ayurvedic formulation, method, and claims under Indian and international regulatory frameworks.
+ * @summary Classify an Ayurvedic product
+ */
+export const mobileClassifyBodyProductNameMax = 300;
+
+export const mobileClassifyBodyIngredientsMax = 3000;
+
+
+
+export const MobileClassifyBody = zod.object({
+  "productName": zod.string().min(1).max(mobileClassifyBodyProductNameMax),
+  "ingredients": zod.string().min(1).max(mobileClassifyBodyIngredientsMax),
+  "dosageForm": zod.string().optional(),
+  "preparationMethod": zod.string().optional(),
+  "intendedUse": zod.string().optional(),
+  "claims": zod.string().optional(),
+  "targetMarket": zod.string().optional(),
+  "clientId": zod.string().optional(),
+  "projectId": zod.string().optional()
+})
+
+export const MobileClassifyResponse = zod.object({
+  "category": zod.string(),
+  "categoryCode": zod.string(),
+  "confidence": zod.string(),
+  "confidenceScore": zod.number(),
+  "summary": zod.string(),
+  "statutoryBasis": zod.string(),
+  "regulatoryPathway": zod.object({
+  "authority": zod.string(),
+  "licenseType": zod.string(),
+  "trialRequirements": zod.array(zod.string()),
+  "standardsRef": zod.string()
+}),
+  "ipAndTkdlRisks": zod.object({
+  "patentability": zod.string(),
+  "tkdlOverlap": zod.string(),
+  "keyRisks": zod.array(zod.string())
+}),
+  "recommendedActions": zod.array(zod.string()),
+  "evidenceSources": zod.array(zod.object({
+  "title": zod.string(),
+  "section": zod.string(),
+  "description": zod.string()
+}))
+})
+
+
+/**
+ * Assesses biodiversity compliance and ABS obligations under the Biological Diversity Act 2002 and 2023 Amendments.
+ * @summary Check Access and Benefit Sharing (ABS) obligations
+ */
+export const mobileAbsCheckBodyBioResourcesMax = 3000;
+
+
+
+export const MobileAbsCheckBody = zod.object({
+  "entityType": zod.string(),
+  "bioResources": zod.string().min(1).max(mobileAbsCheckBodyBioResourcesMax),
+  "sourcingType": zod.string(),
+  "activityType": zod.string(),
+  "jurisdiction": zod.string().optional(),
+  "clientId": zod.string().optional(),
+  "projectId": zod.string().optional()
+})
+
+export const MobileAbsCheckResponse = zod.object({
+  "absStatus": zod.string(),
+  "statusTitle": zod.string(),
+  "confidence": zod.string(),
+  "summary": zod.string(),
+  "statutorySections": zod.array(zod.string()),
+  "benefitSharingEstimate": zod.string(),
+  "approvalForms": zod.array(zod.string()),
+  "keyObligations": zod.array(zod.string()),
+  "exemptionsApplicable": zod.array(zod.string()),
+  "patentClearanceAdvice": zod.string(),
+  "stepByStepRoadmap": zod.array(zod.string()),
+  "evidenceSources": zod.array(zod.object({
+  "title": zod.string(),
+  "section": zod.string(),
+  "description": zod.string()
+}))
+})
+
+

@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Pressable, Text, View } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
+import {
+  KeyboardAvoidingView,
+  Pressable,
+  Text,
+  View,
+} from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Feather, Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
+import * as Haptics from 'expo-haptics';
 import {
   AppScreen,
   BrandHeader,
-  EvidenceCard,
   LanguagePill,
   QueryComposer,
-  SectionTitle,
   StatusBadge,
   SurfaceCard,
   styles,
@@ -23,38 +28,221 @@ import {
 
 type Message = { id: string; role: 'user' | 'assistant'; text?: string; projectId?: string };
 
-function StructuredResponse() {
+const SUGGESTED_QUESTIONS = [
+  'Is our formulation patentable or blocked by Section 3(p)?',
+  'What are the Rule 158B clinical trial requirements for proprietary ASU?',
+  'How do we file Form III clearance with the National Biodiversity Authority?',
+  'Does our herbal drink qualify under FSSAI Ayurveda Aahar 2022?',
+];
+
+function FormattedSection({
+  rawTitle,
+  bodyLines,
+}: {
+  rawTitle: string;
+  bodyLines: string[];
+}) {
   const colors = useColors();
-  return (
-    <SurfaceCard style={{ marginTop: 10, padding: 15 }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <Text style={{ color: colors.foreground, fontSize: 13, fontWeight: '700' }}>IP SAKTI assessment</Text>
-        <StatusBadge label="Guidance" tone="success" />
-      </View>
-      {[
-        ['Likely classification', 'Proprietary Ayurvedic formulation'],
-        ['IP assessment', 'Traditional knowledge may affect novelty.'],
-        ['Key risk', 'Prior-art and knowledge-source overlap.'],
-        ['Recommended next step', 'Conduct a prior-art and TK source search.'],
-      ].map(([label, value]) => (
-        <View key={label} style={{ borderTopWidth: 1, borderTopColor: colors.border, paddingVertical: 11 }}>
-          <Text style={{ color: colors.inkSubtle, fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.7 }}>{label}</Text>
-          <Text style={{ color: colors.foreground, fontSize: 13, lineHeight: 19, marginTop: 4 }}>{value}</Text>
+  const router = useRouter();
+  const title = rawTitle.replace(/^#+\s*/, '').replace(/\*\*/g, '').trim();
+  const lower = title.toLowerCase();
+
+  const isExecutive =
+    lower.includes('executive') || lower.includes('verdict') || lower.includes('assessment');
+  const isRegulatory =
+    lower.includes('statutory') || lower.includes('regulatory') || lower.includes('pathway') || lower.includes('law');
+  const isIp =
+    lower.includes('ip') || lower.includes('patent') || lower.includes('section 3') || lower.includes('tkdl');
+  const isSteps =
+    lower.includes('step') || lower.includes('action') || lower.includes('roadmap') || lower.includes('recommend');
+
+  const iconName: React.ComponentProps<typeof Feather>['name'] = isExecutive
+    ? 'zap'
+    : isRegulatory
+      ? 'layers'
+      : isIp
+        ? 'award'
+        : isSteps
+          ? 'check-circle'
+          : 'info';
+
+  const iconColor = isIp ? colors.pink : isExecutive ? colors.pink : colors.lavenderDeep;
+  const iconBg = isIp ? colors.pinkLight : colors.lavenderLight;
+
+  if (isExecutive) {
+    return (
+      <View
+        style={{
+          backgroundColor: colors.lavenderLight,
+          borderRadius: 14,
+          padding: 13,
+          marginBottom: 12,
+          borderWidth: 1,
+          borderColor: colors.lavenderBorder,
+        }}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 6 }}>
+          <View style={{ width: 22, height: 22, borderRadius: 7, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' }}>
+            <Feather name={iconName} size={12} color={colors.lavenderDeep} />
+          </View>
+          <Text style={{ color: colors.lavenderDeep, fontSize: 11, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' }}>
+            {title}
+          </Text>
         </View>
-      ))}
-      <SectionTitle title="Evidence" />
-      <EvidenceCard title="Patents Act, 1970" section="Section 3(p)" version="Current" />
-      <EvidenceCard title="Traditional Knowledge Digital Library" section="Ashwagandha references" version="2024" />
-      <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
-        <Pressable style={[{ flex: 1, borderRadius: 11, padding: 11, alignItems: 'center' }, { backgroundColor: colors.sageLight }]}><Text style={{ color: colors.forest, fontSize: 11, fontWeight: '700' }}>View evidence</Text></Pressable>
-        <Pressable style={[{ flex: 1, borderRadius: 11, padding: 11, alignItems: 'center' }, { borderWidth: 1, borderColor: colors.border }]}><Text style={{ color: colors.foreground, fontSize: 11, fontWeight: '700' }}>Explore decision</Text></Pressable>
+        {bodyLines.map((line, idx) => (
+          <Text key={idx} style={{ color: colors.foreground, fontSize: 13, lineHeight: 19, fontWeight: '600' }}>
+            {line.trim()}
+          </Text>
+        ))}
       </View>
-    </SurfaceCard>
+    );
+  }
+
+  return (
+    <View style={{ marginBottom: 14 }}>
+      {title ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 8, marginTop: 4 }}>
+          <View style={{ width: 22, height: 22, borderRadius: 7, backgroundColor: iconBg, alignItems: 'center', justifyContent: 'center' }}>
+            <Feather name={iconName} size={12} color={iconColor} />
+          </View>
+          <Text style={{ color: colors.foreground, fontSize: 12.5, fontWeight: '800' }}>
+            {title}
+          </Text>
+        </View>
+      ) : null}
+
+      <View style={{ gap: 6 }}>
+        {bodyLines.map((line, idx) => {
+          const trimmed = line.trim();
+          if (!trimmed) return null;
+
+          // Numbered list item
+          const stepMatch = trimmed.match(/^(\d+)\.\s*(.*)$/);
+          if (stepMatch) {
+            return (
+              <View
+                key={idx}
+                style={{
+                  flexDirection: 'row',
+                  gap: 10,
+                  alignItems: 'flex-start',
+                  paddingVertical: 7,
+                  paddingHorizontal: 10,
+                  borderRadius: 11,
+                  backgroundColor: colors.card,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                }}
+              >
+                <View
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: 6,
+                    backgroundColor: colors.lavenderLight,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginTop: 1,
+                  }}
+                >
+                  <Text style={{ color: colors.lavenderDeep, fontSize: 10.5, fontWeight: '800' }}>
+                    {stepMatch[1]}
+                  </Text>
+                </View>
+                <Text style={{ color: colors.foreground, fontSize: 12, lineHeight: 18, flex: 1, fontWeight: '500' }}>
+                  {stepMatch[2]}
+                </Text>
+              </View>
+            );
+          }
+
+          // Bullet item with bold key (e.g. - **Key**: Value)
+          const bulletMatch = trimmed.match(/^[-*•]\s*(.*)$/);
+          if (bulletMatch) {
+            const content = bulletMatch[1];
+            const colonIndex = content.indexOf(':');
+            if (colonIndex !== -1 && content.startsWith('**')) {
+              const keyPart = content.slice(0, colonIndex).replace(/\*\*/g, '').trim();
+              const valPart = content.slice(colonIndex + 1).trim();
+              return (
+                <View
+                  key={idx}
+                  style={{
+                    paddingVertical: 7,
+                    paddingHorizontal: 10,
+                    borderRadius: 10,
+                    backgroundColor: colors.card,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                  }}
+                >
+                  <Text style={{ color: colors.lavenderDeep, fontSize: 10, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' }}>
+                    {keyPart}
+                  </Text>
+                  <Text style={{ color: colors.foreground, fontSize: 12, lineHeight: 17, marginTop: 2, fontWeight: '500' }}>
+                    {valPart}
+                  </Text>
+                </View>
+              );
+            }
+
+            return (
+              <View key={idx} style={{ flexDirection: 'row', gap: 7, alignItems: 'flex-start', paddingLeft: 4 }}>
+                <Text style={{ color: colors.pink, fontSize: 12, lineHeight: 18 }}>•</Text>
+                <Text style={{ color: colors.foreground, fontSize: 12, lineHeight: 18, flex: 1, fontWeight: '500' }}>
+                  {content.replace(/\*\*/g, '')}
+                </Text>
+              </View>
+            );
+          }
+
+          // Regular paragraph
+          return (
+            <Text key={idx} style={{ color: colors.foreground, fontSize: 12.5, lineHeight: 18.5 }}>
+              {trimmed.replace(/\*\*/g, '')}
+            </Text>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+function FormattedAiMessage({ text }: { text: string }) {
+  // Parse response by section headings (### ...)
+  const lines = text.split('\n');
+  const sections: Array<{ title: string; body: string[] }> = [];
+  let currentTitle = '';
+  let currentBody: string[] = [];
+
+  for (const line of lines) {
+    if (line.startsWith('###') || line.startsWith('##')) {
+      if (currentTitle || currentBody.length > 0) {
+        sections.push({ title: currentTitle, body: currentBody });
+      }
+      currentTitle = line;
+      currentBody = [];
+    } else {
+      currentBody.push(line);
+    }
+  }
+
+  if (currentTitle || currentBody.length > 0) {
+    sections.push({ title: currentTitle, body: currentBody });
+  }
+
+  return (
+    <View>
+      {sections.map((sec, i) => (
+        <FormattedSection key={i} rawTitle={sec.title} bodyLines={sec.body} />
+      ))}
+    </View>
   );
 }
 
 export default function AskAIScreen() {
   const colors = useColors();
+  const router = useRouter();
   const params = useLocalSearchParams<{ draft?: string; projectId?: string }>();
   const [input, setInput] = useState(typeof params.draft === 'string' ? params.draft : '');
   const [messages, setMessages] = useState<Message[]>([
@@ -66,6 +254,8 @@ export default function AskAIScreen() {
   );
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [savedMessageIds, setSavedMessageIds] = useState<string[]>([]);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
   const chatMutation = useMobileChat();
   const saveMemoryMutation = useMobileMemoryCreate();
 
@@ -80,8 +270,14 @@ export default function AskAIScreen() {
     );
   }, [activeProjectId, params.projectId]);
 
-  const send = async () => {
-    const trimmed = input.trim();
+  useEffect(() => {
+    if (typeof params.draft === 'string' && params.draft.trim().length > 0 && messages.length === 1 && clientId) {
+      void sendQuery(params.draft.trim());
+    }
+  }, [params.draft, clientId]);
+
+  const sendQuery = async (queryText: string) => {
+    const trimmed = queryText.trim();
     if (!trimmed || !clientId || chatMutation.isPending) return;
     const messageId = `${Date.now()}`;
     setMessages((prev) => [...prev, { id: messageId, role: 'user', text: trimmed }]);
@@ -114,10 +310,14 @@ export default function AskAIScreen() {
         {
           id: `${messageId}-error`,
           role: 'assistant',
-          text: 'I could not reach the AI assistant. Please try again in a moment.',
+          text: 'I could not reach the IP-SAKTI AI assistant. Please check your backend server connection and try again.',
         },
       ]);
     }
+  };
+
+  const send = () => {
+    void sendQuery(input);
   };
 
   const saveToResearch = async (message: Message) => {
@@ -127,60 +327,233 @@ export default function AskAIScreen() {
       projectId: message.projectId,
       data: {
         clientId,
-        title: 'Saved AI finding',
+        title: 'Saved AI Guidance',
         finding: message.text,
         entities: [],
         sources: [],
       },
     });
     setSavedMessageIds((prev) => [...prev, message.id]);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  };
+
+  const copyMessage = async (message: Message) => {
+    if (!message.text) return;
+    await Clipboard.setStringAsync(message.text);
+    setCopiedId(message.id);
+    Haptics.selectionAsync();
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
   return (
     <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={0} style={{ flex: 1, backgroundColor: colors.canvas }}>
       <AppScreen>
         <BrandHeader action={<LanguagePill />} />
-        <Text style={[styles.pageTitle, { color: colors.foreground }]}>Ask IP SAKTI</Text>
-        <Text style={[styles.pageSubtitle, { color: colors.inkSubtle }]}>Evidence-grounded guidance for Ayurvedic innovation.</Text>
-        <View style={{ marginTop: 22 }}>
+        <Text style={[styles.pageTitle, { color: colors.foreground }]}>Ask IP-SAKTI</Text>
+        <Text style={[styles.pageSubtitle, { color: colors.inkSubtle }]}>
+          Evidence-grounded Ayurvedic regulatory & patent intelligence.
+        </Text>
+
+        <View style={{ marginTop: 20 }}>
           {messages.map((message) =>
             message.role === 'user' ? (
-              <View key={message.id} style={{ alignSelf: 'flex-end', maxWidth: '88%', backgroundColor: colors.forest, borderRadius: 17, borderBottomRightRadius: 5, paddingHorizontal: 14, paddingVertical: 11, marginBottom: 10 }}>
-                <Text style={{ color: colors.primaryForeground, fontSize: 13, lineHeight: 19 }}>{message.text}</Text>
+              <View
+                key={message.id}
+                style={{
+                  alignSelf: 'flex-end',
+                  maxWidth: '88%',
+                  backgroundColor: colors.black,
+                  borderRadius: 18,
+                  borderBottomRightRadius: 4,
+                  paddingHorizontal: 15,
+                  paddingVertical: 12,
+                  marginBottom: 12,
+                  borderWidth: 1,
+                  borderColor: '#262438',
+                }}
+              >
+                <Text style={{ color: '#FFFFFF', fontSize: 13.5, lineHeight: 20, fontWeight: '500' }}>
+                  {message.text}
+                </Text>
               </View>
             ) : message.id === 'welcome' ? (
-              <View key={message.id} style={{ flexDirection: 'row', gap: 9, marginBottom: 5 }}>
-                <View style={{ width: 27, height: 27, backgroundColor: colors.saffronLight, borderRadius: 9, alignItems: 'center', justifyContent: 'center' }}><Feather name="zap" size={14} color={colors.warning} /></View>
-                <Text style={{ color: colors.inkSubtle, fontSize: 12, paddingTop: 5 }}>Here’s a structured view of your question.</Text>
+              <View key={message.id} style={{ marginBottom: 14 }}>
+                <SurfaceCard style={{ borderColor: colors.lavenderBorder, backgroundColor: colors.card }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 8 }}>
+                    <View
+                      style={{
+                        width: 28,
+                        height: 28,
+                        backgroundColor: colors.lavenderLight,
+                        borderRadius: 9,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Feather name="shield" size={14} color={colors.lavenderDeep} />
+                    </View>
+                    <Text style={{ color: colors.foreground, fontSize: 13, fontWeight: '800' }}>
+                      Namaste! I am your IP-SAKTI Sahayak.
+                    </Text>
+                  </View>
+                  <Text style={{ color: colors.inkSubtle, fontSize: 12.5, lineHeight: 18 }}>
+                    Ask any question regarding Ayurvedic product classification, patentability under Section 3(p), Biological Diversity Act (ABS) compliance, or clinical trial requirements under Rule 158B.
+                  </Text>
+                </SurfaceCard>
+
+                {/* Suggested Consultation Starters */}
+                <View style={{ marginTop: 14, gap: 6 }}>
+                  <Text style={{ color: colors.inkSubtle, fontSize: 10, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase' }}>
+                    Quick Consultations
+                  </Text>
+                  {SUGGESTED_QUESTIONS.map((q) => (
+                    <Pressable
+                      key={q}
+                      onPress={() => void sendQuery(q)}
+                      style={({ pressed }) => [
+                        {
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 8,
+                          paddingVertical: 9,
+                          paddingHorizontal: 12,
+                          borderRadius: 12,
+                          backgroundColor: colors.card,
+                          borderWidth: 1,
+                          borderColor: colors.border,
+                          opacity: pressed ? 0.75 : 1,
+                        },
+                      ]}
+                    >
+                      <Feather name="corner-down-right" size={12} color={colors.pink} />
+                      <Text style={{ color: colors.foreground, fontSize: 11.5, fontWeight: '600', flex: 1 }}>
+                        {q}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
               </View>
             ) : (
-              <SurfaceCard key={message.id} style={{ marginBottom: 10, padding: 14 }}>
-                <Text style={{ color: colors.foreground, fontSize: 13, lineHeight: 20 }}>{message.text}</Text>
-                {message.projectId ? (
+              <SurfaceCard
+                key={message.id}
+                style={{
+                  marginBottom: 14,
+                  padding: 15,
+                  borderColor: colors.border,
+                  backgroundColor: colors.card,
+                }}
+              >
+                {/* Header Badge */}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <View style={{ width: 24, height: 24, borderRadius: 8, backgroundColor: colors.lavenderLight, alignItems: 'center', justifyContent: 'center' }}>
+                      <Feather name="shield" size={13} color={colors.lavenderDeep} />
+                    </View>
+                    <Text style={{ color: colors.lavenderDeep, fontSize: 11.5, fontWeight: '800' }}>
+                      IP-SAKTI ASSESSMENT
+                    </Text>
+                  </View>
+                  <StatusBadge label="Grounded" tone="lavender" />
+                </View>
+
+                {/* Rich Formatted Message with Proper Separation */}
+                {message.text ? <FormattedAiMessage text={message.text} /> : null}
+
+                {/* Footer Actions */}
+                <View
+                  style={{
+                    borderTopWidth: 1,
+                    borderTopColor: colors.border,
+                    marginTop: 14,
+                    paddingTop: 11,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  {message.projectId ? (
+                    <Pressable
+                      onPress={() => void saveToResearch(message)}
+                      disabled={saveMemoryMutation.isPending || savedMessageIds.includes(message.id)}
+                      style={({ pressed }) => [
+                        {
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 6,
+                          opacity: pressed || saveMemoryMutation.isPending ? 0.6 : 1,
+                        },
+                      ]}
+                    >
+                      <Feather
+                        name={savedMessageIds.includes(message.id) ? 'check-circle' : 'bookmark'}
+                        size={14}
+                        color={savedMessageIds.includes(message.id) ? colors.success : colors.lavenderDeep}
+                      />
+                      <Text
+                        style={{
+                          color: savedMessageIds.includes(message.id) ? colors.success : colors.lavenderDeep,
+                          fontSize: 11.5,
+                          fontWeight: '700',
+                        }}
+                      >
+                        {savedMessageIds.includes(message.id) ? 'Saved to Research' : 'Save Finding'}
+                      </Text>
+                    </Pressable>
+                  ) : <View />}
+
                   <Pressable
-                    onPress={() => void saveToResearch(message)}
-                    disabled={saveMemoryMutation.isPending || savedMessageIds.includes(message.id)}
-                    style={({ pressed }) => [{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, opacity: pressed || saveMemoryMutation.isPending ? 0.6 : 1 }]}
+                    onPress={() => void copyMessage(message)}
+                    style={({ pressed }) => [
+                      {
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 5,
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                        borderRadius: 8,
+                        backgroundColor: copiedId === message.id ? colors.lavenderLight : 'transparent',
+                        opacity: pressed ? 0.7 : 1,
+                      },
+                    ]}
                   >
-                    <Feather name={savedMessageIds.includes(message.id) ? 'check' : 'bookmark'} size={14} color={colors.forest} />
-                    <Text style={{ color: colors.forest, fontSize: 11, fontWeight: '700' }}>
-                      {savedMessageIds.includes(message.id) ? 'Saved to research' : 'Save to research'}
+                    <Feather
+                      name={copiedId === message.id ? 'check' : 'copy'}
+                      size={13}
+                      color={copiedId === message.id ? colors.lavenderDeep : colors.inkSubtle}
+                    />
+                    <Text style={{ color: copiedId === message.id ? colors.lavenderDeep : colors.inkSubtle, fontSize: 11, fontWeight: '600' }}>
+                      {copiedId === message.id ? 'Copied' : 'Copy'}
                     </Text>
                   </Pressable>
-                ) : null}
+                </View>
               </SurfaceCard>
             ),
           )}
+
           {chatMutation.isPending ? (
-            <SurfaceCard style={{ marginBottom: 10, padding: 14 }}>
-              <Text style={{ color: colors.inkSubtle, fontSize: 13 }}>Reviewing your question…</Text>
+            <SurfaceCard style={{ marginBottom: 10, padding: 16, backgroundColor: colors.lavenderLight, borderColor: colors.lavenderBorder }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <Feather name="loader" size={16} color={colors.lavenderDeep} />
+                <Text style={{ color: colors.lavenderDeep, fontSize: 13, fontWeight: '700' }}>
+                  Consulting Ayurvedic IP & Regulatory Knowledge Base…
+                </Text>
+              </View>
             </SurfaceCard>
           ) : null}
         </View>
-        <View style={{ height: 18 }} />
-        <Text style={{ color: colors.inkSubtle, fontSize: 10, textAlign: 'center', lineHeight: 15, marginHorizontal: 20 }}>AI-generated guidance — not a substitute for professional legal advice.</Text>
+
+        <View style={{ height: 16 }} />
+        <Text style={{ color: colors.inkSubtle, fontSize: 10, textAlign: 'center', lineHeight: 15, marginHorizontal: 20 }}>
+          IP-SAKTI AI provides decision support grounded in Indian statutes — verify with a registered patent attorney for filing.
+        </Text>
+
         <View style={{ marginTop: 12 }}>
-          <QueryComposer value={input} onChangeText={setInput} onSubmit={send} placeholder="Ask a follow-up..." />
+          <QueryComposer
+            value={input}
+            onChangeText={setInput}
+            onSubmit={send}
+            placeholder="Ask a follow-up or specify a formulation..."
+          />
         </View>
       </AppScreen>
     </KeyboardAvoidingView>
