@@ -53,8 +53,8 @@ function MarkdownText({
   const colors = useColors();
   const effectiveBoldColor = boldColor || colors.foreground;
 
-  // Split by bold (**...**) and inline code (`...`) tokens
-  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+  // Split by bold (**...**), italic (*...*), inline code (`...`), and regular text
+  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`|\*[^*]+\*)/g);
 
   return (
     <Text style={style}>
@@ -77,10 +77,18 @@ function MarkdownText({
                 backgroundColor: colors.lavenderLight,
                 color: colors.lavenderDeep,
                 fontWeight: '700',
-                fontSize: (style?.fontSize || 12) * 0.95,
+                fontSize: (style?.fontSize || 12.5) * 0.92,
               }}
             >
               {` ${inner} `}
+            </Text>
+          );
+        }
+        if (part.startsWith('*') && part.endsWith('*') && !part.startsWith('**')) {
+          const inner = part.slice(1, -1);
+          return (
+            <Text key={i} style={{ fontStyle: 'italic' }}>
+              {inner}
             </Text>
           );
         }
@@ -98,12 +106,11 @@ function FormattedSection({
   bodyLines: string[];
 }) {
   const colors = useColors();
-  const router = useRouter();
   const title = rawTitle.replace(/^#+\s*/, '').replace(/\*\*/g, '').trim();
   const lower = title.toLowerCase();
 
   const isExecutive =
-    lower.includes('executive') || lower.includes('verdict') || lower.includes('assessment');
+    lower.includes('executive') || lower.includes('verdict') || lower.includes('determination') || lower.includes('assessment');
   const isRegulatory =
     lower.includes('statutory') || lower.includes('regulatory') || lower.includes('pathway') || lower.includes('law');
   const isIp =
@@ -114,7 +121,7 @@ function FormattedSection({
     lower.includes('source') || lower.includes('citation') || lower.includes('reference') || lower.includes('statutory source');
 
   const iconName: React.ComponentProps<typeof Feather>['name'] = isExecutive
-    ? 'zap'
+    ? 'shield'
     : isSources
       ? 'book-open'
       : isRegulatory
@@ -130,7 +137,7 @@ function FormattedSection({
     : isIp
       ? colors.pink
       : isExecutive
-        ? colors.pink
+        ? colors.lavenderDeep
         : colors.lavenderDeep;
   const iconBg = isSources ? colors.lavenderLight : isIp ? colors.pinkLight : colors.lavenderLight;
 
@@ -139,29 +146,32 @@ function FormattedSection({
       <View
         style={{
           backgroundColor: colors.lavenderLight,
-          borderRadius: 14,
-          padding: 13,
-          marginBottom: 12,
+          borderRadius: 12,
+          padding: 12,
+          borderLeftWidth: 3.5,
+          borderLeftColor: colors.lavenderDeep,
           borderWidth: 1,
           borderColor: colors.lavenderBorder,
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 6 }}>
-          <View style={{ width: 22, height: 22, borderRadius: 7, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' }}>
-            <Feather name={iconName} size={12} color={colors.lavenderDeep} />
-          </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+          <Feather name={iconName} size={13} color={colors.lavenderDeep} />
           <Text style={{ color: colors.lavenderDeep, fontSize: 11, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' }}>
-            {title}
+            {title || 'KEY DETERMINATION'}
           </Text>
         </View>
-        {bodyLines.map((line, idx) => (
-          <MarkdownText
-            key={idx}
-            text={line.trim()}
-            style={{ color: colors.foreground, fontSize: 13, lineHeight: 19, fontWeight: '500' }}
-            boldColor={colors.lavenderDeep}
-          />
-        ))}
+        {bodyLines.map((line, idx) => {
+          const trimmed = line.trim();
+          if (!trimmed) return null;
+          return (
+            <MarkdownText
+              key={idx}
+              text={trimmed}
+              style={{ color: colors.foreground, fontSize: 12.5, lineHeight: 18.5, fontWeight: '500', marginTop: idx > 0 ? 4 : 0 }}
+              boldColor={colors.lavenderDeep}
+            />
+          );
+        })}
       </View>
     );
   }
@@ -170,28 +180,26 @@ function FormattedSection({
     return (
       <View
         style={{
-          marginTop: 6,
-          marginBottom: 12,
-          padding: 12,
-          borderRadius: 13,
+          padding: 11,
+          borderRadius: 12,
           backgroundColor: colors.canvas,
           borderWidth: 1,
           borderColor: colors.border,
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <View style={{ width: 22, height: 22, borderRadius: 7, backgroundColor: colors.lavenderLight, alignItems: 'center', justifyContent: 'center' }}>
-              <Feather name="book-open" size={12} color={colors.lavenderDeep} />
+            <View style={{ width: 20, height: 20, borderRadius: 6, backgroundColor: colors.lavenderLight, alignItems: 'center', justifyContent: 'center' }}>
+              <Feather name="book-open" size={11} color={colors.lavenderDeep} />
             </View>
-            <Text style={{ color: colors.lavenderDeep, fontSize: 11, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' }}>
-              VERIFIED STATUTORY & PRIMARY SOURCES
+            <Text style={{ color: colors.lavenderDeep, fontSize: 10.5, fontWeight: '800', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+              STATUTORY & PRIMARY CITATIONS
             </Text>
           </View>
-          <StatusBadge label="Cited" tone="lavender" />
+          <StatusBadge label="Verified" tone="lavender" />
         </View>
 
-        <View style={{ gap: 6 }}>
+        <View style={{ gap: 5 }}>
           {bodyLines.map((line, idx) => {
             const trimmed = line.trim();
             if (!trimmed) return null;
@@ -207,8 +215,9 @@ function FormattedSection({
                 <View
                   key={idx}
                   style={{
-                    padding: 8,
-                    borderRadius: 9,
+                    paddingVertical: 6,
+                    paddingHorizontal: 9,
+                    borderRadius: 8,
                     backgroundColor: colors.card,
                     borderWidth: 1,
                     borderColor: colors.border,
@@ -219,15 +228,15 @@ function FormattedSection({
                   </Text>
                   <MarkdownText
                     text={citationDetails}
-                    style={{ color: colors.foreground, fontSize: 11.5, lineHeight: 16, marginTop: 2, fontWeight: '500' }}
+                    style={{ color: colors.foreground, fontSize: 11.5, lineHeight: 16, marginTop: 1, fontWeight: '500' }}
                   />
                 </View>
               );
             }
 
             return (
-              <View key={idx} style={{ flexDirection: 'row', gap: 6, alignItems: 'flex-start', paddingLeft: 4 }}>
-                <Feather name="check-circle" size={12} color={colors.lavenderDeep} style={{ marginTop: 2 }} />
+              <View key={idx} style={{ flexDirection: 'row', gap: 6, alignItems: 'flex-start', paddingLeft: 2 }}>
+                <Feather name="check-circle" size={11} color={colors.lavenderDeep} style={{ marginTop: 2.5 }} />
                 <MarkdownText
                   text={content}
                   style={{ color: colors.foreground, fontSize: 11.5, lineHeight: 16, flex: 1 }}
@@ -241,24 +250,38 @@ function FormattedSection({
   }
 
   return (
-    <View style={{ marginBottom: 14 }}>
+    <View>
       {title ? (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 8, marginTop: 4 }}>
-          <View style={{ width: 22, height: 22, borderRadius: 7, backgroundColor: iconBg, alignItems: 'center', justifyContent: 'center' }}>
-            <Feather name={iconName} size={12} color={iconColor} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 7 }}>
+          <View style={{ width: 20, height: 20, borderRadius: 6, backgroundColor: iconBg, alignItems: 'center', justifyContent: 'center' }}>
+            <Feather name={iconName} size={11} color={iconColor} />
           </View>
-          <Text style={{ color: colors.foreground, fontSize: 12.5, fontWeight: '800' }}>
+          <Text style={{ color: colors.lavenderDeep, fontSize: 12.5, fontWeight: '800' }}>
             {title}
           </Text>
         </View>
       ) : null}
 
-      <View style={{ gap: 6 }}>
+      <View style={{ gap: 5 }}>
         {bodyLines.map((line, idx) => {
           const trimmed = line.trim();
           if (!trimmed) return null;
 
-          // Numbered list item
+          // Horizontal rule
+          if (trimmed === '---' || trimmed === '***' || trimmed === '___') {
+            return (
+              <View
+                key={idx}
+                style={{
+                  height: 1,
+                  backgroundColor: colors.border,
+                  marginVertical: 6,
+                }}
+              />
+            );
+          }
+
+          // Numbered list item (e.g. 1. Step description)
           const stepMatch = trimmed.match(/^(\d+)\.\s*(.*)$/);
           if (stepMatch) {
             return (
@@ -266,40 +289,36 @@ function FormattedSection({
                 key={idx}
                 style={{
                   flexDirection: 'row',
-                  gap: 10,
+                  gap: 8,
                   alignItems: 'flex-start',
-                  paddingVertical: 7,
-                  paddingHorizontal: 10,
-                  borderRadius: 11,
-                  backgroundColor: colors.card,
-                  borderWidth: 1,
-                  borderColor: colors.border,
+                  paddingVertical: 4,
+                  paddingHorizontal: 6,
                 }}
               >
                 <View
                   style={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: 6,
+                    width: 18,
+                    height: 18,
+                    borderRadius: 9,
                     backgroundColor: colors.lavenderLight,
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginTop: 1,
                   }}
                 >
-                  <Text style={{ color: colors.lavenderDeep, fontSize: 10.5, fontWeight: '800' }}>
+                  <Text style={{ color: colors.lavenderDeep, fontSize: 10, fontWeight: '800' }}>
                     {stepMatch[1]}
                   </Text>
                 </View>
                 <MarkdownText
                   text={stepMatch[2]}
-                  style={{ color: colors.foreground, fontSize: 12, lineHeight: 18, flex: 1, fontWeight: '500' }}
+                  style={{ color: colors.foreground, fontSize: 12.5, lineHeight: 18, flex: 1, fontWeight: '500' }}
                 />
               </View>
             );
           }
 
-          // Bullet item with bold key (e.g. - **Key**: Value)
+          // Bullet item with bold key (e.g. - **Section 3(p)**: Status)
           const bulletMatch = trimmed.match(/^[-*•]\s*(.*)$/);
           if (bulletMatch) {
             const content = bulletMatch[1];
@@ -311,31 +330,28 @@ function FormattedSection({
                 <View
                   key={idx}
                   style={{
-                    paddingVertical: 7,
-                    paddingHorizontal: 10,
-                    borderRadius: 10,
-                    backgroundColor: colors.card,
-                    borderWidth: 1,
-                    borderColor: colors.border,
+                    flexDirection: 'row',
+                    gap: 6,
+                    alignItems: 'flex-start',
+                    paddingVertical: 2.5,
+                    paddingLeft: 4,
                   }}
                 >
-                  <Text style={{ color: colors.lavenderDeep, fontSize: 10, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' }}>
-                    {keyPart}
+                  <Text style={{ color: colors.pink, fontSize: 13, lineHeight: 18 }}>•</Text>
+                  <Text style={{ flex: 1, fontSize: 12.5, lineHeight: 18 }}>
+                    <Text style={{ color: colors.lavenderDeep, fontWeight: '800' }}>{keyPart}: </Text>
+                    <MarkdownText text={valPart} style={{ color: colors.foreground, fontWeight: '400' }} />
                   </Text>
-                  <MarkdownText
-                    text={valPart}
-                    style={{ color: colors.foreground, fontSize: 12, lineHeight: 17, marginTop: 2, fontWeight: '500' }}
-                  />
                 </View>
               );
             }
 
             return (
-              <View key={idx} style={{ flexDirection: 'row', gap: 7, alignItems: 'flex-start', paddingLeft: 4 }}>
-                <Text style={{ color: colors.pink, fontSize: 12, lineHeight: 18 }}>•</Text>
+              <View key={idx} style={{ flexDirection: 'row', gap: 6, alignItems: 'flex-start', paddingVertical: 2.5, paddingLeft: 4 }}>
+                <Text style={{ color: colors.pink, fontSize: 13, lineHeight: 18 }}>•</Text>
                 <MarkdownText
                   text={content}
-                  style={{ color: colors.foreground, fontSize: 12, lineHeight: 18, flex: 1, fontWeight: '500' }}
+                  style={{ color: colors.foreground, fontSize: 12.5, lineHeight: 18, flex: 1, fontWeight: '400' }}
                 />
               </View>
             );
@@ -356,6 +372,7 @@ function FormattedSection({
 }
 
 function FormattedAiMessage({ text }: { text: string }) {
+  const colors = useColors();
   // Parse response by section headings (### ...)
   const lines = text.split('\n');
   const sections: Array<{ title: string; body: string[] }> = [];
@@ -379,13 +396,26 @@ function FormattedAiMessage({ text }: { text: string }) {
   }
 
   return (
-    <View>
+    <View style={{ gap: 0 }}>
       {sections.map((sec, i) => (
-        <FormattedSection key={i} rawTitle={sec.title} bodyLines={sec.body} />
+        <React.Fragment key={i}>
+          {i > 0 ? (
+            <View
+              style={{
+                height: 1,
+                backgroundColor: colors.border,
+                marginVertical: 12,
+                opacity: 0.8,
+              }}
+            />
+          ) : null}
+          <FormattedSection rawTitle={sec.title} bodyLines={sec.body} />
+        </React.Fragment>
       ))}
     </View>
   );
 }
+
 
 export default function AskAIScreen() {
   const colors = useColors();
