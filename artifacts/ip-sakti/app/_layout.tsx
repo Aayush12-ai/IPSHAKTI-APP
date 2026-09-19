@@ -29,6 +29,7 @@ function RootLayoutNav() {
     <Stack screenOptions={{ headerBackTitle: 'Back' }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="research" options={{ headerShown: false }} />
+      <Stack.Screen name="formula-analyzer" options={{ headerShown: false }} />
     </Stack>
   );
 }

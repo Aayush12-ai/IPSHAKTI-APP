@@ -5,6 +5,7 @@ import { AppScreen, BrandHeader, LanguagePill, SectionTitle, ToolCard, styles } 
 import { useColors } from '@/hooks/useColors';
 
 const tools = [
+  { icon: 'package' as const, title: 'Formula Analyzer', description: 'Normalize ingredients and review evidence.', route: '/formula-analyzer' as const },
   { icon: 'award' as const, title: 'Patentability Check', description: 'Assess novelty, inventive step and exclusions.', route: '/classify' as const },
   { icon: 'search' as const, title: 'Prior-Art Radar', description: 'Find patents and classical knowledge overlap.', route: '/radar' as const },
   { icon: 'layers' as const, title: 'Product Classification', description: 'Identify the likely regulatory pathway.', route: '/classify' as const },
@@ -23,7 +24,7 @@ export default function ToolsScreen() {
       <BrandHeader action={<LanguagePill />} />
       <Text style={[styles.pageTitle, { color: colors.foreground }]}>IP Tools</Text>
       <Text style={[styles.pageSubtitle, { color: colors.inkSubtle }]}>Focused tools for every step from idea to market.</Text>
-      <SectionTitle title="Your toolkit" action="8 tools" />
+      <SectionTitle title="Your toolkit" action={`${tools.length} tools`} />
       <View style={styles.toolsGrid}>
         {tools.map((tool, index) => <ToolCard key={tool.title} {...tool} accent={index % 3 === 0 ? 'saffron' : 'sage'} onPress={() => router.push(tool.route)} />)}
       </View>

@@ -43,6 +43,85 @@ export const MobileChatResponse = zod.object({
 
 
 /**
+ * Extracts and normalizes recognized ingredients, then returns only evidence-backed analysis available to the server.
+ * @summary Analyze an Ayurveda formulation
+ */
+export const mobileFormulaAnalysisBodyFormulationMax = 4000;
+
+
+
+export const MobileFormulaAnalysisBody = zod.object({
+  "formulation": zod.string().min(1).max(mobileFormulaAnalysisBodyFormulationMax),
+  "action": zod.enum(['full', 'prior-art', 'abs-tk'])
+})
+
+export const MobileFormulaAnalysisResponse = zod.object({
+  "formulation": zod.string(),
+  "representation": zod.string(),
+  "ingredients": zod.array(zod.object({
+  "input": zod.string(),
+  "commonName": zod.string(),
+  "botanicalName": zod.string(),
+  "normalizedEntity": zod.string(),
+  "source": zod.string(),
+  "status": zod.enum(['recognized', 'unrecognized'])
+})),
+  "patent": zod.object({
+  "status": zod.enum(['available', 'unavailable', 'not-run']),
+  "summary": zod.string(),
+  "findings": zod.array(zod.string()),
+  "evidence": zod.array(zod.object({
+  "title": zod.string(),
+  "reference": zod.string(),
+  "url": zod.string().optional()
+}))
+}),
+  "priorArt": zod.object({
+  "status": zod.enum(['available', 'unavailable', 'not-run']),
+  "summary": zod.string(),
+  "findings": zod.array(zod.string()),
+  "evidence": zod.array(zod.object({
+  "title": zod.string(),
+  "reference": zod.string(),
+  "url": zod.string().optional()
+}))
+}),
+  "traditionalKnowledge": zod.object({
+  "status": zod.enum(['available', 'unavailable', 'not-run']),
+  "summary": zod.string(),
+  "findings": zod.array(zod.string()),
+  "evidence": zod.array(zod.object({
+  "title": zod.string(),
+  "reference": zod.string(),
+  "url": zod.string().optional()
+}))
+}),
+  "abs": zod.object({
+  "status": zod.enum(['available', 'unavailable', 'not-run']),
+  "summary": zod.string(),
+  "findings": zod.array(zod.string()),
+  "evidence": zod.array(zod.object({
+  "title": zod.string(),
+  "reference": zod.string(),
+  "url": zod.string().optional()
+}))
+}),
+  "regulatory": zod.object({
+  "status": zod.enum(['available', 'unavailable', 'not-run']),
+  "summary": zod.string(),
+  "findings": zod.array(zod.string()),
+  "evidence": zod.array(zod.object({
+  "title": zod.string(),
+  "reference": zod.string(),
+  "url": zod.string().optional()
+}))
+}),
+  "explanation": zod.string(),
+  "explanationStatus": zod.enum(['available', 'unavailable'])
+})
+
+
+/**
  * Lists the mobile user's research projects and recent activity.
  * @summary List research projects
  */

@@ -63,6 +63,37 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /mobile/formula-analysis:
+    post:
+      operationId: mobileFormulaAnalysis
+      tags: [mobile]
+      summary: Analyze an Ayurveda formulation
+      description: Extracts and normalizes recognized ingredients, then returns only evidence-backed analysis available to the server.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MobileFormulaAnalysisRequest"
+      responses:
+        "200":
+          description: Structured formulation analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MobileFormulaAnalysisResult"
+        "400":
+          description: Invalid formulation input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Analysis provider failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /mobile/projects:
     get:
       operationId: mobileProjects
@@ -194,6 +225,112 @@ components:
         - projectId
         - sessionId
         - historyId
+    MobileFormulaAnalysisRequest:
+      type: object
+      properties:
+        formulation:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        action:
+          type: string
+          enum: [full, prior-art, abs-tk]
+      required:
+        - formulation
+        - action
+    FormulaIngredient:
+      type: object
+      properties:
+        input:
+          type: string
+        commonName:
+          type: string
+        botanicalName:
+          type: string
+        normalizedEntity:
+          type: string
+        source:
+          type: string
+        status:
+          type: string
+          enum: [recognized, unrecognized]
+      required:
+        - input
+        - commonName
+        - botanicalName
+        - normalizedEntity
+        - source
+        - status
+    FormulaEvidence:
+      type: object
+      properties:
+        title:
+          type: string
+        reference:
+          type: string
+        url:
+          type: string
+      required:
+        - title
+        - reference
+    FormulaAnalysisSection:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [available, unavailable, not-run]
+        summary:
+          type: string
+        findings:
+          type: array
+          items:
+            type: string
+        evidence:
+          type: array
+          items:
+            $ref: "#/components/schemas/FormulaEvidence"
+      required:
+        - status
+        - summary
+        - findings
+        - evidence
+    MobileFormulaAnalysisResult:
+      type: object
+      properties:
+        formulation:
+          type: string
+        representation:
+          type: string
+        ingredients:
+          type: array
+          items:
+            $ref: "#/components/schemas/FormulaIngredient"
+        patent:
+          $ref: "#/components/schemas/FormulaAnalysisSection"
+        priorArt:
+          $ref: "#/components/schemas/FormulaAnalysisSection"
+        traditionalKnowledge:
+          $ref: "#/components/schemas/FormulaAnalysisSection"
+        abs:
+          $ref: "#/components/schemas/FormulaAnalysisSection"
+        regulatory:
+          $ref: "#/components/schemas/FormulaAnalysisSection"
+        explanation:
+          type: string
+        explanationStatus:
+          type: string
+          enum: [available, unavailable]
+      required:
+        - formulation
+        - representation
+        - ingredients
+        - patent
+        - priorArt
+        - traditionalKnowledge
+        - abs
+        - regulatory
+        - explanation
+        - explanationStatus
     ResearchSourceMetadata:
       type: object
       properties:

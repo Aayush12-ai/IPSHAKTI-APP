@@ -31,6 +31,84 @@ export interface MobileChatResult {
   historyId: string;
 }
 
+export type MobileFormulaAnalysisRequestAction = typeof MobileFormulaAnalysisRequestAction[keyof typeof MobileFormulaAnalysisRequestAction];
+
+
+export const MobileFormulaAnalysisRequestAction = {
+  full: 'full',
+  'prior-art': 'prior-art',
+  'abs-tk': 'abs-tk',
+} as const;
+
+export interface MobileFormulaAnalysisRequest {
+  /**
+     * @minLength 1
+     * @maxLength 4000
+     */
+  formulation: string;
+  action: MobileFormulaAnalysisRequestAction;
+}
+
+export type FormulaIngredientStatus = typeof FormulaIngredientStatus[keyof typeof FormulaIngredientStatus];
+
+
+export const FormulaIngredientStatus = {
+  recognized: 'recognized',
+  unrecognized: 'unrecognized',
+} as const;
+
+export interface FormulaIngredient {
+  input: string;
+  commonName: string;
+  botanicalName: string;
+  normalizedEntity: string;
+  source: string;
+  status: FormulaIngredientStatus;
+}
+
+export interface FormulaEvidence {
+  title: string;
+  reference: string;
+  url?: string;
+}
+
+export type FormulaAnalysisSectionStatus = typeof FormulaAnalysisSectionStatus[keyof typeof FormulaAnalysisSectionStatus];
+
+
+export const FormulaAnalysisSectionStatus = {
+  available: 'available',
+  unavailable: 'unavailable',
+  'not-run': 'not-run',
+} as const;
+
+export interface FormulaAnalysisSection {
+  status: FormulaAnalysisSectionStatus;
+  summary: string;
+  findings: string[];
+  evidence: FormulaEvidence[];
+}
+
+export type MobileFormulaAnalysisResultExplanationStatus = typeof MobileFormulaAnalysisResultExplanationStatus[keyof typeof MobileFormulaAnalysisResultExplanationStatus];
+
+
+export const MobileFormulaAnalysisResultExplanationStatus = {
+  available: 'available',
+  unavailable: 'unavailable',
+} as const;
+
+export interface MobileFormulaAnalysisResult {
+  formulation: string;
+  representation: string;
+  ingredients: FormulaIngredient[];
+  patent: FormulaAnalysisSection;
+  priorArt: FormulaAnalysisSection;
+  traditionalKnowledge: FormulaAnalysisSection;
+  abs: FormulaAnalysisSection;
+  regulatory: FormulaAnalysisSection;
+  explanation: string;
+  explanationStatus: MobileFormulaAnalysisResultExplanationStatus;
+}
+
 export interface ResearchSourceMetadata {
   title: string;
   reference: string;

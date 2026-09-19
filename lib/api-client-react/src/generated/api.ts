@@ -24,6 +24,8 @@ import type {
   HealthStatus,
   MobileChatRequest,
   MobileChatResult,
+  MobileFormulaAnalysisRequest,
+  MobileFormulaAnalysisResult,
   MobileMemoryCreateRequest,
   MobileMemoryResult,
   MobileProjectCreateRequest,
@@ -207,6 +209,78 @@ export const useMobileChat = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getMobileChatMutationOptions(options));
+    }
+
+export const getMobileFormulaAnalysisUrl = () => {
+
+
+
+
+  return `/api/mobile/formula-analysis`
+}
+
+/**
+ * Extracts and normalizes recognized ingredients, then returns only evidence-backed analysis available to the server.
+ * @summary Analyze an Ayurveda formulation
+ */
+export const mobileFormulaAnalysis = async (mobileFormulaAnalysisRequest: MobileFormulaAnalysisRequest, options?: Parameters<typeof customFetch>[1]): Promise<MobileFormulaAnalysisResult> => {
+
+  return customFetch<MobileFormulaAnalysisResult>(getMobileFormulaAnalysisUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(mobileFormulaAnalysisRequest)
+  }
+);}
+
+
+
+
+
+export const getMobileFormulaAnalysisMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mobileFormulaAnalysis>>, TError,{data: BodyType<MobileFormulaAnalysisRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof mobileFormulaAnalysis>>, TError,{data: BodyType<MobileFormulaAnalysisRequest>}, TContext> => {
+
+const mutationKey = ['mobileFormulaAnalysis'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mobileFormulaAnalysis>>, {data: BodyType<MobileFormulaAnalysisRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  mobileFormulaAnalysis(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MobileFormulaAnalysisMutationResult = NonNullable<Awaited<ReturnType<typeof mobileFormulaAnalysis>>>
+    export type MobileFormulaAnalysisMutationBody = BodyType<MobileFormulaAnalysisRequest>
+    export type MobileFormulaAnalysisMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Analyze an Ayurveda formulation
+ */
+export const useMobileFormulaAnalysis = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mobileFormulaAnalysis>>, TError,{data: BodyType<MobileFormulaAnalysisRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof mobileFormulaAnalysis>>,
+        TError,
+        {data: BodyType<MobileFormulaAnalysisRequest>},
+        TContext
+      > => {
+      return useMutation(getMobileFormulaAnalysisMutationOptions(options));
     }
 
 export const getMobileProjectsUrl = (params: MobileProjectsParams,) => {

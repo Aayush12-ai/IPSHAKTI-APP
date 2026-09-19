@@ -16,6 +16,7 @@ import {
 import { useColors } from '@/hooks/useColors';
 
 const quickActions = [
+  { icon: 'package' as const, title: 'Formula Analyzer', text: 'Normalize a formula', route: '/formula-analyzer' as const },
   { icon: 'award' as const, title: 'Patentability', text: 'Check IP potential', route: '/classify' as const },
   { icon: 'layers' as const, title: 'Classification', text: 'Find your pathway', route: '/classify' as const },
   { icon: 'globe' as const, title: 'ABS Check', text: 'Review biodiversity', route: '/jurisdiction' as const },

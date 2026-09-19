@@ -7,9 +7,18 @@
  */
 
 export * from './errorResponse';
+export * from './formulaAnalysisSection';
+export * from './formulaAnalysisSectionStatus';
+export * from './formulaEvidence';
+export * from './formulaIngredient';
+export * from './formulaIngredientStatus';
 export * from './healthStatus';
 export * from './mobileChatRequest';
 export * from './mobileChatResult';
+export * from './mobileFormulaAnalysisRequest';
+export * from './mobileFormulaAnalysisRequestAction';
+export * from './mobileFormulaAnalysisResult';
+export * from './mobileFormulaAnalysisResultExplanationStatus';
 export * from './mobileMemoryCreateRequest';
 export * from './mobileMemoryResult';
 export * from './mobileProjectCreateRequest';
