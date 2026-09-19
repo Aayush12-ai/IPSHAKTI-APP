@@ -415,7 +415,8 @@ async function callGeminiClassification(
       "You operate with deep, comprehensive expertise in the Drugs & Cosmetics Act 1940, Rule 158B, Rule 122E, FSSAI Ayurveda Aahar Regulations 2022, Biological Diversity Act 2002/2023, Indian Patents Act 1970 (Section 3(p), 3(d), 3(e), 2(1)(j)), and International Patent Law (WIPO PCT, USPTO 35 U.S.C. 101/102/103, EPO EPC Art 52/54/56, and Google Patents prior-art classification IPC A61K36/00). " +
       "Never mention 'Gemini' or generic AI disclaimers. Return only valid JSON.";
 
-    const rawText = await callGemini({
+    // Set 12s timeout promise race
+    const geminiPromise = callGemini({
       prompt,
       systemInstruction,
       generationConfig: {
@@ -425,13 +426,57 @@ async function callGeminiClassification(
       },
     });
 
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 12000));
+    const rawText = await Promise.race([geminiPromise, timeoutPromise]);
+
     if (!rawText) return fallback;
 
     const cleanedText = rawText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
-    const parsed = JSON.parse(cleanedText) as ClassificationPayload;
-    if (parsed.category && parsed.regulatoryPathway && parsed.ipAndTkdlRisks) {
-      return parsed;
+    const parsed = JSON.parse(cleanedText) as Record<string, any>;
+
+    if (parsed && typeof parsed === "object") {
+      const normalizedScore =
+        typeof parsed.confidenceScore === "number"
+          ? parsed.confidenceScore
+          : parseInt(String(parsed.confidenceScore ?? ""), 10) || fallback.confidenceScore;
+
+      const normalized: ClassificationPayload = {
+        category: String(parsed.category || fallback.category),
+        categoryCode: String(parsed.categoryCode || fallback.categoryCode),
+        confidence: String(parsed.confidence || fallback.confidence),
+        confidenceScore: normalizedScore,
+        summary: String(parsed.summary || fallback.summary),
+        statutoryBasis: String(parsed.statutoryBasis || fallback.statutoryBasis),
+        regulatoryPathway: {
+          authority: String(parsed.regulatoryPathway?.authority || fallback.regulatoryPathway.authority),
+          licenseType: String(parsed.regulatoryPathway?.licenseType || fallback.regulatoryPathway.licenseType),
+          trialRequirements: Array.isArray(parsed.regulatoryPathway?.trialRequirements)
+            ? parsed.regulatoryPathway.trialRequirements.map(String)
+            : fallback.regulatoryPathway.trialRequirements,
+          standardsRef: String(parsed.regulatoryPathway?.standardsRef || fallback.regulatoryPathway.standardsRef),
+        },
+        ipAndTkdlRisks: {
+          patentability: String(parsed.ipAndTkdlRisks?.patentability || fallback.ipAndTkdlRisks.patentability),
+          tkdlOverlap: String(parsed.ipAndTkdlRisks?.tkdlOverlap || fallback.ipAndTkdlRisks.tkdlOverlap),
+          keyRisks: Array.isArray(parsed.ipAndTkdlRisks?.keyRisks)
+            ? parsed.ipAndTkdlRisks.keyRisks.map(String)
+            : fallback.ipAndTkdlRisks.keyRisks,
+        },
+        recommendedActions: Array.isArray(parsed.recommendedActions)
+          ? parsed.recommendedActions.map(String)
+          : fallback.recommendedActions,
+        evidenceSources: Array.isArray(parsed.evidenceSources)
+          ? parsed.evidenceSources.map((s: any) => ({
+              title: String(s?.title || "Statutory Reference"),
+              section: String(s?.section || "Rule / Section"),
+              description: String(s?.description || "Regulatory guidance"),
+            }))
+          : fallback.evidenceSources,
+      };
+
+      return normalized;
     }
+
     return fallback;
   } catch {
     return fallback;
@@ -508,12 +553,26 @@ router.post("/mobile/classify", async (req, res) => {
       }
     }
 
-    const validatedResponse = MobileClassifyResponse.parse(finalResult);
-    res.json(validatedResponse);
+    const parseCheck = MobileClassifyResponse.safeParse(finalResult);
+    if (parseCheck.success) {
+      res.json(parseCheck.data);
+    } else {
+      res.json(fallbackResult);
+    }
   } catch (error) {
-    req.log.error({ err: error }, "Product classification failed");
-    res.status(502).json({ message: "The product classification service is temporarily unavailable." });
+    req.log.error({ err: error }, "Product classification encountered error; serving evaluated fallback");
+    const safeFallback = evaluateRegulatoryClassification({
+      productName,
+      ingredients,
+      dosageForm,
+      preparationMethod,
+      intendedUse,
+      claims,
+      targetMarket,
+    });
+    res.json(safeFallback);
   }
 });
 
 export default router;
+

@@ -89,12 +89,12 @@ export default function ResearchScreen() {
         <LanguagePill />
       </View>
 
-      <SurfaceCard style={{ marginTop: 22, backgroundColor: colors.forest, borderColor: colors.forest }}>
-        <Text style={{ color: '#B9D8C5', fontSize: 10, fontWeight: '700', letterSpacing: 1.1 }}>ACTIVE WORKSPACE</Text>
-        <Text style={{ color: colors.primaryForeground, fontSize: 20, fontWeight: '700', marginTop: 7 }}>
+      <SurfaceCard style={{ marginTop: 22, backgroundColor: colors.lavenderDeep, borderColor: colors.lavenderDeep }}>
+        <Text style={{ color: colors.lavenderBorder, fontSize: 10, fontWeight: '700', letterSpacing: 1.1 }}>ACTIVE WORKSPACE</Text>
+        <Text style={{ color: '#FFFFFF', fontSize: 20, fontWeight: '700', marginTop: 7 }}>
           {activeProject?.name ?? 'Start your first project'}
         </Text>
-        <Text style={{ color: '#D8EBDD', fontSize: 12, lineHeight: 18, marginTop: 6 }}>
+        <Text style={{ color: colors.lavenderLight, fontSize: 12, lineHeight: 18, marginTop: 6 }}>
           {activeProject?.description || 'Create a project to keep questions, findings, and sources connected.'}
         </Text>
         {activeProject ? (
@@ -106,25 +106,25 @@ export default function ResearchScreen() {
       </SurfaceCard>
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 27, marginBottom: 12 }}>
-        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Your projects</Text>
-        <Text style={[styles.sectionAction, { color: colors.forest }]}>{projectCountLabel}</Text>
+        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Your Projects</Text>
+        <Text style={[styles.sectionAction, { color: colors.lavenderDeep }]}>{projectCountLabel}</Text>
       </View>
 
       {projectsQuery.isLoading ? (
         <SurfaceCard><Text style={{ color: colors.inkSubtle, fontSize: 13 }}>Loading research projects…</Text></SurfaceCard>
       ) : projects.length === 0 ? (
         <SurfaceCard>
-          <Feather name="folder-plus" size={22} color={colors.forest} />
+          <Feather name="folder-plus" size={22} color={colors.lavenderDeep} />
           <Text style={{ color: colors.foreground, fontSize: 14, fontWeight: '700', marginTop: 11 }}>No research projects yet</Text>
           <Text style={{ color: colors.inkSubtle, fontSize: 12, lineHeight: 18, marginTop: 5 }}>
-            Start with a named project so IP SAKTI can carry context into your next question.
+            Start with a named project so IP-SAKTI can carry context into your next question.
           </Text>
         </SurfaceCard>
       ) : projects.map((project) => (
         <SurfaceCard key={project.id} style={{ marginBottom: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 11 }}>
-            <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: colors.sageLight, alignItems: 'center', justifyContent: 'center' }}>
-              <Feather name="briefcase" size={17} color={colors.forest} />
+            <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: colors.lavenderLight, alignItems: 'center', justifyContent: 'center' }}>
+              <Feather name="briefcase" size={17} color={colors.lavenderDeep} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ color: colors.foreground, fontSize: 14, fontWeight: '700' }}>{project.name}</Text>
@@ -150,9 +150,9 @@ export default function ResearchScreen() {
           ) : null}
           <Pressable
             onPress={() => void continueResearch(project.id)}
-            style={({ pressed }) => [{ marginTop: 13, borderRadius: 11, paddingVertical: 10, alignItems: 'center', backgroundColor: colors.sageLight, opacity: pressed ? 0.7 : 1 }]}
+            style={({ pressed }) => [{ marginTop: 13, borderRadius: 11, paddingVertical: 10, alignItems: 'center', backgroundColor: colors.lavenderLight, opacity: pressed ? 0.7 : 1 }]}
           >
-            <Text style={{ color: colors.forest, fontSize: 11, fontWeight: '700' }}>Continue research</Text>
+            <Text style={{ color: colors.lavenderDeep, fontSize: 11, fontWeight: '700' }}>Continue research</Text>
           </Pressable>
         </SurfaceCard>
       ))}

@@ -366,7 +366,8 @@ async function callGeminiAbsCheck(
       "You operate with deep, comprehensive expertise in the Biological Diversity Act 2002, Biological Diversity (Amendment) Act 2023, NBA Regulations 2014, State Biodiversity Board (SBB) rules, Section 10(4)(d)(ii) of the Indian Patents Act, and the Nagoya Protocol. " +
       "Never mention 'Gemini' or generic AI disclaimers. Return only valid raw JSON.";
 
-    const rawText = await callGemini({
+    // Set 12s timeout promise race
+    const geminiPromise = callGemini({
       prompt,
       systemInstruction,
       generationConfig: {
@@ -376,12 +377,46 @@ async function callGeminiAbsCheck(
       },
     });
 
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 12000));
+    const rawText = await Promise.race([geminiPromise, timeoutPromise]);
+
     if (!rawText) return fallback;
 
     const cleanedText = rawText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
-    const parsed = JSON.parse(cleanedText) as AbsPayload;
-    if (parsed.absStatus && parsed.statutorySections && parsed.approvalForms) {
-      return parsed;
+    const parsed = JSON.parse(cleanedText) as Record<string, any>;
+
+    if (parsed && typeof parsed === "object") {
+      const normalized: AbsPayload = {
+        absStatus: String(parsed.absStatus || fallback.absStatus),
+        statusTitle: String(parsed.statusTitle || fallback.statusTitle),
+        confidence: String(parsed.confidence || fallback.confidence),
+        summary: String(parsed.summary || fallback.summary),
+        statutorySections: Array.isArray(parsed.statutorySections)
+          ? parsed.statutorySections.map(String)
+          : fallback.statutorySections,
+        benefitSharingEstimate: String(parsed.benefitSharingEstimate || fallback.benefitSharingEstimate),
+        approvalForms: Array.isArray(parsed.approvalForms)
+          ? parsed.approvalForms.map(String)
+          : fallback.approvalForms,
+        keyObligations: Array.isArray(parsed.keyObligations)
+          ? parsed.keyObligations.map(String)
+          : fallback.keyObligations,
+        exemptionsApplicable: Array.isArray(parsed.exemptionsApplicable)
+          ? parsed.exemptionsApplicable.map(String)
+          : fallback.exemptionsApplicable,
+        patentClearanceAdvice: String(parsed.patentClearanceAdvice || fallback.patentClearanceAdvice),
+        stepByStepRoadmap: Array.isArray(parsed.stepByStepRoadmap)
+          ? parsed.stepByStepRoadmap.map(String)
+          : fallback.stepByStepRoadmap,
+        evidenceSources: Array.isArray(parsed.evidenceSources)
+          ? parsed.evidenceSources.map((s: any) => ({
+              title: String(s?.title || "Biological Diversity Statute"),
+              section: String(s?.section || "Section / Rule"),
+              description: String(s?.description || "Statutory guidance"),
+            }))
+          : fallback.evidenceSources,
+      };
+      return normalized;
     }
     return fallback;
   } catch {
@@ -455,12 +490,24 @@ router.post("/mobile/abs-check", async (req, res) => {
       }
     }
 
-    const validatedResponse = MobileAbsCheckResponse.parse(finalResult);
-    res.json(validatedResponse);
+    const parseCheck = MobileAbsCheckResponse.safeParse(finalResult);
+    if (parseCheck.success) {
+      res.json(parseCheck.data);
+    } else {
+      res.json(fallbackResult);
+    }
   } catch (error) {
-    req.log.error({ err: error }, "ABS check failed");
-    res.status(502).json({ message: "The ABS assessment service is temporarily unavailable." });
+    req.log.error({ err: error }, "ABS check encountered error; serving evaluated fallback");
+    const safeFallback = evaluateAbsObligations({
+      entityType,
+      bioResources,
+      sourcingType,
+      activityType,
+      jurisdiction,
+    });
+    res.json(safeFallback);
   }
 });
 
 export default router;
+

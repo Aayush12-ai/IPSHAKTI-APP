@@ -90,6 +90,293 @@ const QUICK_HERB_CHIPS = [
   'Guduchi',
 ];
 
+function evaluateLocalClassification(data: {
+  productName: string;
+  ingredients: string;
+  dosageForm?: string;
+  preparationMethod?: string;
+  intendedUse?: string;
+  claims?: string;
+  targetMarket?: string;
+}): MobileClassifyResult {
+  const text = `${data.productName} ${data.ingredients} ${data.dosageForm ?? ''} ${data.preparationMethod ?? ''} ${data.intendedUse ?? ''} ${data.claims ?? ''}`.toLowerCase();
+  const method = (data.preparationMethod ?? '').toLowerCase();
+  const claims = (data.claims ?? '').toLowerCase();
+  const use = (data.intendedUse ?? '').toLowerCase();
+  const form = (data.dosageForm ?? '').toLowerCase();
+
+  const isClassical =
+    method.includes('classical') ||
+    method.includes('shastriya') ||
+    method.includes('afi') ||
+    text.includes('charaka') ||
+    text.includes('sushruta') ||
+    text.includes('sharangadhara') ||
+    text.includes('bhasma') ||
+    text.includes('arishta') ||
+    text.includes('asava') ||
+    text.includes('avaleha') ||
+    text.includes('taila') ||
+    text.includes('ghrita');
+
+  const isCosmetic =
+    form.includes('cream') ||
+    form.includes('lotion') ||
+    form.includes('serum') ||
+    form.includes('balm') ||
+    form.includes('oil') ||
+    form.includes('wash') ||
+    use.includes('skin') ||
+    use.includes('hair') ||
+    use.includes('cosmetic') ||
+    use.includes('complexion') ||
+    claims.includes('radiant') ||
+    claims.includes('glow') ||
+    claims.includes('anti-aging');
+
+  const isFoodOrDietary =
+    use.includes('food') ||
+    use.includes('diet') ||
+    use.includes('nutrition') ||
+    use.includes('beverage') ||
+    use.includes('tea') ||
+    use.includes('latte') ||
+    use.includes('snack') ||
+    claims.includes('general wellness') ||
+    claims.includes('daily nutrition') ||
+    text.includes('aahar') ||
+    text.includes('supplement') ||
+    (data.targetMarket?.includes('United States') && !use.includes('cure'));
+
+  const isPhyto =
+    method.includes('purified') ||
+    method.includes('fraction') ||
+    text.includes('standardized fraction') ||
+    text.includes('phytopharmaceutical') ||
+    text.includes('isolated marker');
+
+  if (isPhyto) {
+    return {
+      category: 'Phytopharmaceutical Drug',
+      categoryCode: 'phytopharmaceutical',
+      confidence: 'High',
+      confidenceScore: 92,
+      summary:
+        'Purified botanical fraction evaluated under CDSCO Phytopharmaceutical Drug regulations (Drugs and Cosmetics Rules 1945, Rule 122E/Schedule Y). Requires central CDSCO clinical trials.',
+      statutoryBasis: 'Drugs and Cosmetics Rules, 1945 — Rule 122E (Phytopharmaceutical Pathway)',
+      regulatoryPathway: {
+        authority: 'CDSCO (Central Drugs Standard Control Organization)',
+        licenseType: 'Form 44 (Phytopharmaceutical Drug Authorization)',
+        trialRequirements: [
+          'Phase I, II, and III Clinical Trials in accordance with CDSCO guidelines',
+          'Standardization to at least 4 active phytochemical markers',
+          'Complete acute, sub-chronic, and reproductive animal toxicology data',
+        ],
+        standardsRef: 'CDSCO Phytopharmaceutical Guidelines & Indian Pharmacopoeia (IP)',
+      },
+      ipAndTkdlRisks: {
+        patentability: 'High patentability potential if the fraction demonstrates synergistic or novel pharmacology not disclosed in classical texts.',
+        tkdlOverlap: 'Low TKDL barrier for purified, novel-ratio fractions; Section 3(p) objections are surmountable with characterization data.',
+        keyRisks: [
+          'Stringent Central CDSCO approval timelines (18-24 months)',
+          'High capital investment for Phase I-III clinical evaluation',
+        ],
+      },
+      recommendedActions: [
+        'Engage CDSCO Subject Expert Committee (SEC) for pre-submission consultation',
+        'File PCT / Indian Patent Application with comparative chromatographic synergy data',
+        'Initiate GMP pilot-scale validation at CDSCO-approved facility',
+      ],
+      evidenceSources: [
+        {
+          title: 'Drugs and Cosmetics Rules, 1945',
+          section: 'Rule 122E & Schedule Y',
+          description: 'Definition and regulatory requirements for Phytopharmaceutical Drugs in India',
+        },
+        {
+          title: 'Indian Patent Act, 1970',
+          section: 'Section 3(d) and 3(e)',
+          description: 'Patent eligibility standards for novel purified fractions and synergistic combinations',
+        },
+      ],
+    };
+  }
+
+  if (isFoodOrDietary && !isClassical) {
+    return {
+      category: 'Ayurveda Aahar (Food / Dietary Supplement)',
+      categoryCode: 'ayurveda-aahar',
+      confidence: 'High',
+      confidenceScore: 90,
+      summary:
+        'Nutritional formulation containing authoritative Ayurvedic botanicals governed under the FSSAI (Ayurveda Aahar) Regulations, 2022. Commercialization permitted without ASU drug manufacturing license.',
+      statutoryBasis: 'FSSAI (Ayurveda Aahar) Regulations, 2022 & Food Safety and Standards Act, 2006',
+      regulatoryPathway: {
+        authority: 'FSSAI (Food Safety and Standards Authority of India)',
+        licenseType: 'FSSAI Central / State Manufacturing License (Category 13.0)',
+        trialRequirements: [
+          'Botanicals must be listed in authoritative books of Schedule A of Ayurveda Aahar regulations',
+          'Strict compliance with heavy metal limits, pesticide residue, and microbiological parameters',
+          'No therapeutic or medicinal cure claims allowed on packaging',
+        ],
+        standardsRef: 'FSSAI Ayurveda Aahar Schedule & Codex Alimentarius',
+      },
+      ipAndTkdlRisks: {
+        patentability: 'Moderate to Low patentability under Section 3(p) and 3(e) unless a proprietary nutrient delivery system is established.',
+        tkdlOverlap: 'Moderate TKDL overlap; focus IP protection on trade dress, branding, and proprietary process formulation.',
+        keyRisks: [
+          'Risk of misbranding if therapeutic disease claims are made on food packaging',
+          'FSSAI mandatory logo and warning declarations required on all labels',
+        ],
+      },
+      recommendedActions: [
+        'Apply for FSSAI Ayurveda Aahar License with category-specific declaration',
+        'Review product claims to ensure complete compliance with Advertising and Claims Regulations 2018',
+        'File trademark and distinctive trade dress applications with the Trade Marks Registry',
+      ],
+      evidenceSources: [
+        {
+          title: 'Food Safety and Standards (Ayurveda Aahar) Regulations, 2022',
+          section: 'Regulation 3 & Schedule A',
+          description: 'Statutory standards for foods prepared in accordance with classical Ayurvedic texts',
+        },
+      ],
+    };
+  }
+
+  if (isCosmetic) {
+    return {
+      category: 'Ayurvedic Cosmetic Preparation',
+      categoryCode: 'ayurvedic-cosmetic',
+      confidence: 'High',
+      confidenceScore: 89,
+      summary:
+        'Topical herbal formulation intended for cleansing, beautifying, or promoting appearance, governed under the Drugs and Cosmetics Act (Schedule M-II / ASU Cosmetics).',
+      statutoryBasis: 'Drugs and Cosmetics Act, 1940 — Section 3(aa) & Ayurvedic Cosmetic Provisions',
+      regulatoryPathway: {
+        authority: 'State AYUSH / Drug Licensing Authority',
+        licenseType: 'Form 25C / ASU Cosmetic Manufacturing License',
+        trialRequirements: [
+          'Dermal irritation and ocular safety testing',
+          'Standardization of botanical actives and preservative challenge testing',
+          'AYUSH Good Manufacturing Practices (Schedule T) compliance',
+        ],
+        standardsRef: 'Bureau of Indian Standards (BIS) for Cosmetics & Ayurvedic Pharmacopoeia',
+      },
+      ipAndTkdlRisks: {
+        patentability: 'Patentable if the composition demonstrates non-obvious skin-permeation enhancement or synergistic anti-aging active stabilization.',
+        tkdlOverlap: 'Significant prior art in TKDL for beauty and skin lepa formulations.',
+        keyRisks: [
+          'Strict prohibition against therapeutic disease cure claims (e.g. eczema or psoriasis cure)',
+        ],
+      },
+      recommendedActions: [
+        'Obtain AYUSH Cosmetic formulation approval from State Licensing Authority',
+        'Secure BIS and ISO 22716 Cosmetic GMP certifications',
+      ],
+      evidenceSources: [
+        {
+          title: 'Drugs and Cosmetics Act, 1940',
+          section: 'Section 3(aa)',
+          description: 'Definition of cosmetics and topical preparations',
+        },
+      ],
+    };
+  }
+
+  if (isClassical) {
+    return {
+      category: 'Classical Ayurvedic Medicine (Schedule 1 ASU)',
+      categoryCode: 'classical-asu',
+      confidence: 'High',
+      confidenceScore: 96,
+      summary:
+        'Shastriya formulation manufactured strictly in accordance with authoritative classical texts listed in the First Schedule of the Drugs & Cosmetics Act, 1940.',
+      statutoryBasis: 'Drugs and Cosmetics Act, 1940 — Section 3(a) (Classical ASU)',
+      regulatoryPathway: {
+        authority: 'State AYUSH Licensing Authority',
+        licenseType: 'Form 25D ASU Manufacturing License',
+        trialRequirements: [
+          'Textual citation from First Schedule authoritative books (e.g. AFI, Charaka, Sushruta)',
+          'No independent clinical safety trial required under Rule 158B for exact classical compositions',
+          'Heavy metals, microbial load, and physicochemical standardization tests',
+        ],
+        standardsRef: 'Ayurvedic Pharmacopoeia of India (API) & Ayurvedic Formulary of India (AFI)',
+      },
+      ipAndTkdlRisks: {
+        patentability: 'Strictly non-patentable under Section 3(p) as traditional knowledge.',
+        tkdlOverlap: '100% overlap with prior-art documented in the Traditional Knowledge Digital Library (TKDL).',
+        keyRisks: [
+          'Cannot claim exclusive patent rights or brand proprietary monopoly over the classical recipe',
+          'Must adhere strictly to standard classical manufacturing processes without unauthorized additives',
+        ],
+      },
+      recommendedActions: [
+        'Cite the exact authoritative text edition, chapter, and shloka in your license application',
+        'Implement Ayurvedic GMP (Schedule T) compliance in manufacturing',
+        'Establish brand differentiation through trademark registration rather than patent filings',
+      ],
+      evidenceSources: [
+        {
+          title: 'Drugs and Cosmetics Act, 1940',
+          section: 'First Schedule & Section 3(a)',
+          description: 'Authoritative texts for classical Ayurvedic, Siddha, and Unani medicines',
+        },
+        {
+          title: 'Indian Patent Act, 1970',
+          section: 'Section 3(p)',
+          description: 'Inventions relating to traditional knowledge are not patentable',
+        },
+      ],
+    };
+  }
+
+  return {
+    category: 'Proprietary Ayurvedic Medicine (ASU Patent & Proprietary)',
+    categoryCode: 'proprietary-asu',
+    confidence: 'High',
+    confidenceScore: 92,
+    summary:
+      'Formulation containing ingredients mentioned in authoritative Ayurvedic texts, but whose specific recipe, dosage form, or standardized extract ratio is proprietary.',
+    statutoryBasis: 'Drugs and Cosmetics Act, 1940 — Section 3(h) & Rule 158B',
+    regulatoryPathway: {
+      authority: 'State AYUSH Licensing Authority',
+      licenseType: 'Form 25D ASU Patent & Proprietary Manufacturing License',
+      trialRequirements: [
+        'Safety and efficacy proof under Rule 158B (textual correlation or pilot clinical trials)',
+        'Accelerated and real-time stability studies',
+        'Standardization of raw botanicals as per Ayurvedic Pharmacopoeia of India (API)',
+      ],
+      standardsRef: 'Ayurvedic Pharmacopoeia of India (API) & Rule 158B Evidence Guidelines',
+    },
+    ipAndTkdlRisks: {
+      patentability: 'Patentable only if unexpected therapeutic synergy (Section 3(d)) or a novel extraction/delivery process is established.',
+      tkdlOverlap: 'Individual ingredients exist in TKDL; combination novelty must be substantiated.',
+      keyRisks: [
+        'Section 3(p) objections by Indian Patent Office (IPO) regarding traditional knowledge aggregation',
+        'Rule 158B proof of safety required if novel excipients or high-ratio extracts are used',
+      ],
+    },
+    recommendedActions: [
+      'Prepare Rule 158B evidence dossier documenting rationale and safety for each active botanical',
+      'Perform combination synergy assays (e.g. isobologram) before filing any patent application',
+      'Apply for Form 25D ASU license with State AYUSH Licensing Authority',
+    ],
+    evidenceSources: [
+      {
+        title: 'Drugs and Cosmetics Rules, 1945',
+        section: 'Rule 158B',
+        description: 'Evidence required for licensing of Patent or Proprietary ASU medicines',
+      },
+      {
+        title: 'Indian Patent Act, 1970',
+        section: 'Section 3(d) and Section 3(p)',
+        description: 'Statutory hurdles for Ayurvedic proprietary formulations and efficacy enhancement',
+      },
+    ],
+  };
+}
+
 export default function ClassifyScreen() {
   const colors = useColors();
   const router = useRouter();
@@ -107,6 +394,7 @@ export default function ClassifyScreen() {
   const [activeProjectId, setActiveProjectIdState] = useState<string | null>(null);
   const [savedToResearch, setSavedToResearch] = useState(false);
   const [result, setResult] = useState<MobileClassifyResult | null>(null);
+  const [isOfflineFallback, setIsOfflineFallback] = useState(false);
 
   const classifyMutation = useMobileClassify();
   const saveMemoryMutation = useMobileMemoryCreate();
@@ -134,6 +422,17 @@ export default function ClassifyScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setStep(2);
     setSavedToResearch(false);
+    setIsOfflineFallback(false);
+
+    const localResult = evaluateLocalClassification({
+      productName: productName.trim(),
+      ingredients: ingredients.trim(),
+      dosageForm,
+      preparationMethod,
+      intendedUse: intendedUse.trim(),
+      claims: claims.trim(),
+      targetMarket,
+    });
 
     try {
       const response = await classifyMutation.mutateAsync({
@@ -150,9 +449,13 @@ export default function ClassifyScreen() {
         },
       });
       setResult(response);
+      setIsOfflineFallback(false);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch {
-      // Result handled via error fallback
+      // If network fails or times out, immediately show complete statutory rule assessment
+      setResult(localResult);
+      setIsOfflineFallback(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     }
   };
 
@@ -199,7 +502,7 @@ export default function ClassifyScreen() {
                   flex: 1,
                   height: 5,
                   borderRadius: 4,
-                  backgroundColor: item <= step ? colors.forest : colors.border,
+                  backgroundColor: item <= step ? colors.lavenderDeep : colors.border,
                 }}
               />
             ))}
@@ -266,15 +569,15 @@ export default function ClassifyScreen() {
                       key={chip}
                       onPress={() => addHerbChip(chip)}
                       style={{
-                        backgroundColor: colors.sageLight,
+                        backgroundColor: colors.lavenderLight,
                         paddingHorizontal: 9,
                         paddingVertical: 4,
                         borderRadius: 8,
                         borderWidth: 1,
-                        borderColor: colors.border,
+                        borderColor: colors.lavenderBorder,
                       }}
                     >
-                      <Text style={{ color: colors.forest, fontSize: 11, fontWeight: '600' }}>
+                      <Text style={{ color: colors.lavenderDeep, fontSize: 11, fontWeight: '600' }}>
                         + {chip}
                       </Text>
                     </Pressable>
@@ -298,13 +601,13 @@ export default function ClassifyScreen() {
                           paddingVertical: 9,
                           borderRadius: 11,
                           borderWidth: isSelected ? 1.5 : 1,
-                          borderColor: isSelected ? colors.forest : colors.border,
-                          backgroundColor: isSelected ? colors.sageLight : colors.card,
+                          borderColor: isSelected ? colors.lavenderDeep : colors.border,
+                          backgroundColor: isSelected ? colors.lavenderLight : colors.card,
                         }}
                       >
                         <Text
                           style={{
-                            color: isSelected ? colors.forest : colors.foreground,
+                            color: isSelected ? colors.lavenderDeep : colors.foreground,
                             fontSize: 11,
                             fontWeight: isSelected ? '700' : '500',
                           }}
@@ -347,8 +650,8 @@ export default function ClassifyScreen() {
                       padding: 12,
                       borderRadius: 13,
                       borderWidth: isSelected ? 1.5 : 1,
-                      borderColor: isSelected ? colors.forest : colors.border,
-                      backgroundColor: isSelected ? colors.sageLight : colors.card,
+                      borderColor: isSelected ? colors.lavenderDeep : colors.border,
+                      backgroundColor: isSelected ? colors.lavenderLight : colors.card,
                     }}
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -358,7 +661,7 @@ export default function ClassifyScreen() {
                       <Feather
                         name={isSelected ? 'check-circle' : 'circle'}
                         size={17}
-                        color={isSelected ? colors.forest : colors.border}
+                        color={isSelected ? colors.lavenderDeep : colors.border}
                       />
                     </View>
                     <Text style={{ color: colors.inkSubtle, fontSize: 10, marginTop: 4, lineHeight: 14 }}>
@@ -402,8 +705,8 @@ export default function ClassifyScreen() {
                       padding: 11,
                       borderRadius: 11,
                       borderWidth: isSelected ? 1.5 : 1,
-                      borderColor: isSelected ? colors.forest : colors.border,
-                      backgroundColor: isSelected ? colors.sageLight : colors.card,
+                      borderColor: isSelected ? colors.lavenderDeep : colors.border,
+                      backgroundColor: isSelected ? colors.lavenderLight : colors.card,
                     }}
                   >
                     <Text style={{ color: colors.foreground, fontSize: 12, fontWeight: isSelected ? '700' : '500', flex: 1 }}>
@@ -412,7 +715,7 @@ export default function ClassifyScreen() {
                     <Feather
                       name={isSelected ? 'check-circle' : 'circle'}
                       size={16}
-                      color={isSelected ? colors.forest : colors.border}
+                      color={isSelected ? colors.lavenderDeep : colors.border}
                     />
                   </Pressable>
                 );
@@ -448,9 +751,9 @@ export default function ClassifyScreen() {
           </ScrollView>
         ) : (
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 30 }}>
-            {classifyMutation.isPending ? (
+            {classifyMutation.isPending && !result ? (
               <SurfaceCard style={{ marginTop: 20, alignItems: 'center', paddingVertical: 40 }}>
-                <ActivityIndicator size="large" color={colors.forest} />
+                <ActivityIndicator size="large" color={colors.lavenderDeep} />
                 <Text style={{ color: colors.foreground, fontSize: 15, fontWeight: '700', marginTop: 16 }}>
                   Evaluating Ayurvedic Regulatory Pathways…
                 </Text>
@@ -460,7 +763,45 @@ export default function ClassifyScreen() {
               </SurfaceCard>
             ) : result ? (
               <>
-                <SurfaceCard style={{ marginTop: 10, borderColor: colors.forest, borderWidth: 1.5 }}>
+                {isOfflineFallback ? (
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      backgroundColor: colors.warningLight,
+                      padding: 10,
+                      borderRadius: 10,
+                      marginBottom: 10,
+                      borderWidth: 1,
+                      borderColor: colors.warning,
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
+                      <Feather name="info" size={14} color={colors.warning} />
+                      <Text style={{ color: colors.foreground, fontSize: 11, fontWeight: '600', flex: 1 }}>
+                        Statutory Rule Evaluation (Offline)
+                      </Text>
+                    </View>
+                    <Pressable
+                      onPress={handleClassify}
+                      style={{
+                        paddingHorizontal: 8,
+                        paddingVertical: 3,
+                        backgroundColor: colors.card,
+                        borderRadius: 6,
+                        borderWidth: 1,
+                        borderColor: colors.warning,
+                      }}
+                    >
+                      <Text style={{ color: colors.warning, fontSize: 10, fontWeight: '700' }}>
+                        Retry AI
+                      </Text>
+                    </Pressable>
+                  </View>
+                ) : null}
+
+                <SurfaceCard style={{ marginTop: 6, borderColor: colors.lavenderBorder, borderWidth: 1.5 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <View style={{ flex: 1, marginRight: 10 }}>
                       <Text style={{ color: colors.foreground, fontSize: 16, fontWeight: '700' }}>
@@ -497,7 +838,7 @@ export default function ClassifyScreen() {
                       <Text style={{ color: colors.inkSubtle, fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.7 }}>
                         License Type / Form
                       </Text>
-                      <Text style={{ color: colors.forest, fontSize: 13, fontWeight: '700', marginTop: 2 }}>
+                      <Text style={{ color: colors.lavenderDeep, fontSize: 13, fontWeight: '700', marginTop: 2 }}>
                         {result.regulatoryPathway.licenseType}
                       </Text>
                     </View>
@@ -525,15 +866,15 @@ export default function ClassifyScreen() {
                 </SurfaceCard>
 
                 <SectionTitle title="IP & Traditional Knowledge (Section 3(p)) Risk" />
-                <SurfaceCard style={{ backgroundColor: colors.sageLight }}>
-                  <Text style={{ color: colors.forest, fontSize: 12, fontWeight: '700' }}>
+                <SurfaceCard style={{ backgroundColor: colors.lavenderLight, borderColor: colors.lavenderBorder }}>
+                  <Text style={{ color: colors.lavenderDeep, fontSize: 12, fontWeight: '700' }}>
                     Patentability Outlook:
                   </Text>
                   <Text style={{ color: colors.foreground, fontSize: 12, lineHeight: 18, marginTop: 4 }}>
                     {result.ipAndTkdlRisks.patentability}
                   </Text>
 
-                  <Text style={{ color: colors.forest, fontSize: 12, fontWeight: '700', marginTop: 10 }}>
+                  <Text style={{ color: colors.lavenderDeep, fontSize: 12, fontWeight: '700', marginTop: 10 }}>
                     TKDL Overlap Analysis:
                   </Text>
                   <Text style={{ color: colors.foreground, fontSize: 12, lineHeight: 18, marginTop: 4 }}>
@@ -541,7 +882,7 @@ export default function ClassifyScreen() {
                   </Text>
 
                   {result.ipAndTkdlRisks.keyRisks.length > 0 ? (
-                    <View style={{ marginTop: 10, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 8 }}>
+                    <View style={{ marginTop: 10, borderTopWidth: 1, borderTopColor: colors.lavenderBorder, paddingTop: 8 }}>
                       <Text style={{ color: colors.warning, fontSize: 11, fontWeight: '700' }}>
                         Key Regulatory Risks:
                       </Text>
@@ -573,13 +914,13 @@ export default function ClassifyScreen() {
                           width: 20,
                           height: 20,
                           borderRadius: 6,
-                          backgroundColor: colors.sageLight,
+                          backgroundColor: colors.lavenderLight,
                           alignItems: 'center',
                           justifyContent: 'center',
                           marginTop: 1,
                         }}
                       >
-                        <Text style={{ color: colors.forest, fontSize: 10, fontWeight: '700' }}>
+                        <Text style={{ color: colors.lavenderDeep, fontSize: 10, fontWeight: '700' }}>
                           {i + 1}
                         </Text>
                       </View>
