@@ -40,7 +40,7 @@ export async function callGemini(options: GeminiRequestOptions): Promise<string 
     return null;
   }
 
-  const model = options.model ?? process.env.GEMINI_MODEL ?? "gemini-2.0-flash";
+  const model = options.model ?? process.env.GEMINI_MODEL ?? "gemini-3.6-flash";
   const url = `${GEMINI_ENDPOINT}/${encodeURIComponent(model)}:generateContent`;
 
   const requestBody: Record<string, unknown> = {
