@@ -91,46 +91,65 @@ export async function callGemini(options: GeminiRequestOptions): Promise<string 
     };
   }
 
+  // Resilient multi-model pool (if one experiences high demand, smoothly fallback to others)
+  const candidateModels = [
+    model,
+    "gemini-3.6-flash",
+    "gemini-flash-latest",
+    "gemini-3.5-flash",
+    "gemini-pro-latest",
+  ].filter((m, idx, arr) => m && arr.indexOf(m) === idx);
+
   let lastError: unknown = null;
 
-  // Try each API key in order (Key 1 -> Fallback Key 2 -> ...)
-  for (let i = 0; i < keys.length; i++) {
-    const apiKey = keys[i];
-    const keyPreview = apiKey.slice(0, 6) + "..." + apiKey.slice(-4);
+  for (const currentModel of candidateModels) {
+    const url = `${GEMINI_ENDPOINT}/${encodeURIComponent(currentModel)}:generateContent`;
 
-    try {
-      const response = await fetch(`${url}?key=${encodeURIComponent(apiKey)}`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(requestBody),
-      });
+    for (let i = 0; i < keys.length; i++) {
+      const apiKey = keys[i];
+      const keyPreview = apiKey.slice(0, 6) + "..." + apiKey.slice(-4);
 
-      if (response.ok) {
-        const data = (await response.json()) as GeminiResponse;
-        const text = data.candidates?.[0]?.content?.parts
-          ?.map((p) => p.text ?? "")
-          .join("")
-          .trim();
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          const response = await fetch(`${url}?key=${encodeURIComponent(apiKey)}`, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(requestBody),
+          });
 
-        if (text) {
-          if (i > 0) {
-            logger.info({ keyIndex: i, keyPreview }, "Gemini fallback key succeeded");
+          if (response.ok) {
+            const data = (await response.json()) as GeminiResponse;
+            const text = data.candidates?.[0]?.content?.parts
+              ?.map((p) => p.text ?? "")
+              .join("")
+              .trim();
+
+            if (text) {
+              return text;
+            }
+          } else if (response.status === 429 && attempt === 1) {
+            // Rate limit backoff
+            await new Promise((r) => setTimeout(r, 1500));
+            continue;
+          } else {
+            const errorText = await response.text().catch(() => "");
+            logger.warn(
+              { keyIndex: i, model: currentModel, status: response.status, error: errorText.slice(0, 200) },
+              "Gemini request unsuccessful; trying next key/model...",
+            );
+            break;
           }
-          return text;
+        } catch (err) {
+          lastError = err;
+          if (attempt === 1) {
+            await new Promise((r) => setTimeout(r, 1000));
+            continue;
+          }
         }
-      } else {
-        const errorText = await response.text().catch(() => "");
-        logger.warn(
-          { keyIndex: i, keyPreview, status: response.status, error: errorText.slice(0, 200) },
-          "Gemini key failed or rate-limited; attempting fallback to next key...",
-        );
       }
-    } catch (err) {
-      lastError = err;
-      logger.warn({ keyIndex: i, keyPreview, err }, "Network error on Gemini key, trying next key...");
     }
   }
 
-  logger.error({ totalKeys: keys.length, lastError }, "All Gemini API keys failed or exhausted.");
+  logger.error({ totalKeys: keys.length, lastError }, "All Gemini API attempts failed.");
   return null;
 }
